@@ -25,5 +25,19 @@ services:
     depends_on:
       - mysql
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hris-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+
 volumes:
   hris_mysql_data:
