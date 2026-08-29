@@ -33,16 +33,16 @@ class DepartmentController extends Controller
 
     public function show($department)
     {
-        $department = DepartmentModel::find($department);
+        $showDepartment = DepartmentModel::find($department);
 
-        if (!$department) {
+        if (!$showDepartment) {
             return response()->json([
                 'message' => 'Department not found'
             ], 404);
         }
 
         return response()->json([
-            'data' => $department
+            'data' => $showDepartment
         ], 200);
     }
 

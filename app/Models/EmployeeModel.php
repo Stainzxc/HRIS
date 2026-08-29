@@ -20,12 +20,15 @@ class EmployeeModel extends Model
         'position_id',
         'employment_status',
         'employee_type',
+        'date_of_birth',
+        'date_hired',
+        'salary'
     ];
 
     protected $casts = [
         'date_of_birth' => 'date',
         'date_hired' => 'date',
-        'salary' => 'decimal:12,2',
+        'salary' => 'decimal:2',
     ];
 
     public function position()
