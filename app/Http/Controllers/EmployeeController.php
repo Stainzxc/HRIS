@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\EmployeeRequest\StoreEmployeeRequest;
 use App\Http\Requests\EmployeeRequest\UpdateEmployeeRequest;
-use App\Http\Requests\UpdateDepartmentRequest;
 use App\Models\EmployeeModel;
-use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
 {
@@ -46,10 +44,19 @@ class EmployeeController extends Controller
     public function update(UpdateEmployeeRequest $request, EmployeeModel $employee)
     {
         $employee->update($request->validated());
-        
+
         return response()->json([
             'data' => $employee,
             'message' => 'Employee updated successfully'
+        ], 200);
+    }
+
+    public function destroy(EmployeeModel $employee)
+    {
+        $employee->delete();
+
+        return response()->json([
+            'data' => $employee
         ], 200);
     }
 }

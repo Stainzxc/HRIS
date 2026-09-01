@@ -16,7 +16,7 @@ class PositionModel extends Model
 
     public function employees()
     {
-        return $this->hasMany(Employee::class, 'employee_id');
+        return $this->hasMany(EmployeeModel::class, 'employee_id');
     }
 
     public function department()

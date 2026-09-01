@@ -4,10 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreDepartmentRequest;
 use App\Http\Requests\UpdateDepartmentRequest;
-use App\Http\Requests\DestroyDepartmentRequest;
 use App\Models\DepartmentModel;
-use Illuminate\Http\Request;
-use Illuminate\Session\Store;
 
 class DepartmentController extends Controller
 {
