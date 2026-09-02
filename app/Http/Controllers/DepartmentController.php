@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreDepartmentRequest;
-use App\Http\Requests\UpdateDepartmentRequest;
+use App\Http\Requests\DepartmentRequest\StoreDepartmentRequest;
+use App\Http\Requests\DepartmentRequest\UpdateDepartmentRequest;
+use App\Http\Resources\DepartmentResource;
 use App\Models\DepartmentModel;
 
 class DepartmentController extends Controller
@@ -12,20 +13,16 @@ class DepartmentController extends Controller
     {
         $departments = DepartmentModel::all();
 
-        return response()->json($departments);
+        return DepartmentResource::collection($departments);
     }
 
-    public function store(StoreDepartmentRequest $request)
+    public function post(StoreDepartmentRequest $request)
     {
         $validatedData = $request->validated();
 
         $department = DepartmentModel::create($validatedData);
 
-        return response()->json([
-            'id' => $department->id,
-            'name' => $department->name,
-            'description' => $department->description,
-        ], 201);
+        return new DepartmentResource($department);
     }
 
     public function show($department)
@@ -38,28 +35,20 @@ class DepartmentController extends Controller
             ], 404);
         }
 
-        return response()->json([
-            'data' => $showDepartment
-        ], 200);
+        return new DepartmentResource($showDepartment);
     }
 
     public function update(UpdateDepartmentRequest $request, DepartmentModel $department)
     {
         $department->update($request->validated());
 
-        return response()->json([
-            'id' => $department->id,
-            'name' => $department->name,
-            'description' => $department->description
-        ], 200);
+        return new DepartmentResource($department);
     }
 
     public function destroy(DepartmentModel $department)
     {
         $department->delete();
 
-        return response()->json([
-            'data' => $department
-        ], 200);
+        return new DepartmentResource($department);
     }
 }

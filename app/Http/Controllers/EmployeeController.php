@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\EmployeeRequest\StoreEmployeeRequest;
 use App\Http\Requests\EmployeeRequest\UpdateEmployeeRequest;
+use App\Http\Resources\EmployeeResource;
 use App\Models\EmployeeModel;
 
 class EmployeeController extends Controller
@@ -12,7 +13,7 @@ class EmployeeController extends Controller
     {
         $employee = EmployeeModel::all();
 
-        return response()->json($employee);
+        return EmployeeResource::collection($employee);
     }
 
     public function store(StoreEmployeeRequest $request)
@@ -21,9 +22,7 @@ class EmployeeController extends Controller
 
         $employee = EmployeeModel::create($validatedEmployee);
 
-        return response()->json([
-            'data' => $employee
-        ], 201);
+        return new EmployeeResource($employee);
     }
 
     public function show($employee)
@@ -36,27 +35,20 @@ class EmployeeController extends Controller
             ], 404);
         }
 
-        return response()->json([
-            'data' => $showEmployee
-        ], 200);
+        return new EmployeeResource($showEmployee);
     }
 
     public function update(UpdateEmployeeRequest $request, EmployeeModel $employee)
     {
         $employee->update($request->validated());
 
-        return response()->json([
-            'data' => $employee,
-            'message' => 'Employee updated successfully'
-        ], 200);
+        return new EmployeeResource($employee);
     }
 
     public function destroy(EmployeeModel $employee)
     {
         $employee->delete();
 
-        return response()->json([
-            'data' => $employee
-        ], 200);
+        return new EmployeeResource($employee);
     }
 }
