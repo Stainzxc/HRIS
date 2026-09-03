@@ -13,10 +13,12 @@ class DepartmentController extends Controller
     {
         $departments = DepartmentModel::all();
 
+        $departments->load('positions');
+
         return DepartmentResource::collection($departments);
     }
 
-    public function post(StoreDepartmentRequest $request)
+    public function store(StoreDepartmentRequest $request)
     {
         $validatedData = $request->validated();
 
@@ -34,6 +36,8 @@ class DepartmentController extends Controller
                 'message' => 'Department not found'
             ], 404);
         }
+
+        $showDepartment->load('positions');
 
         return new DepartmentResource($showDepartment);
     }

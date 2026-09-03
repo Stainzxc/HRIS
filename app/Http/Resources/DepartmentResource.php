@@ -18,6 +18,13 @@ class DepartmentResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
+
+            'positions' => $this->positions->map(function ($position) {
+                return [
+                    'id' => $position->id,
+                    'name' => $position->name,
+                ];
+            })
         ];
     }
 }

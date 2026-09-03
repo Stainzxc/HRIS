@@ -13,6 +13,8 @@ class EmployeeController extends Controller
     {
         $employee = EmployeeModel::all();
 
+        $employee->load('position.department');
+
         return EmployeeResource::collection($employee);
     }
 
@@ -34,6 +36,8 @@ class EmployeeController extends Controller
                 'message' => 'Employee not found'
             ], 404);
         }
+
+        $showEmployee->load('position.department');
 
         return new EmployeeResource($showEmployee);
     }

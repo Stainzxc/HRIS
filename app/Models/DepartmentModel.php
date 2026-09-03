@@ -13,8 +13,8 @@ class DepartmentModel extends Model
         'description',
     ];
 
-    public function position()
+    public function positions()
     {
-        return $this->hasMany(PositionModel::class, 'position_id');
+        return $this->hasMany(PositionModel::class, 'department_id');
     }
 }
