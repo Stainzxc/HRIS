@@ -4,14 +4,26 @@ import { login } from "../../services/authService";
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [error, setError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     async function handleLogin(e) {
         e.preventDefault();
+        if (isSubmitting) return;
+        setError(null);
+        setIsSubmitting(true);
         try {
             const response = await login({ email, password });
             console.log("Login successful:", response.data);
         } catch (error) {
-            console.error("Login failed:", error);
+            const message = error.response?.data?.message;
+            setError(
+                !error.response
+                    ? messagex``
+                    : "Please check your email and password, then try again.",
+            );
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -65,7 +77,11 @@ function Login() {
                         </p>
                     </div>
 
-                    <div className="space-y-5">
+                    <form
+                        className="space-y-5"
+                        onSubmit={handleLogin}
+                        aria-busy={isSubmitting}
+                    >
                         <div>
                             <label
                                 htmlFor="email"
@@ -76,6 +92,12 @@ function Login() {
                             <input
                                 id="email"
                                 type="email"
+                                autoComplete="username"
+                                required
+                                readOnly={isSubmitting}
+                                aria-describedby={
+                                    error ? "login-error" : undefined
+                                }
                                 placeholder="you@company.com"
                                 className="h-12 w-full rounded-xl border border-[#ded7dc] bg-white px-4 text-sm text-[#28242f] shadow-[0_2px_8px_rgba(52,35,61,0.03)] outline-none transition placeholder:text-[#b3abb4] focus:border-[#806096] focus:ring-4 focus:ring-[#806096]/10"
                                 value={email}
@@ -101,11 +123,50 @@ function Login() {
                             <input
                                 id="password"
                                 type="password"
+                                autoComplete="current-password"
+                                required
+                                readOnly={isSubmitting}
+                                aria-describedby={
+                                    error ? "login-error" : undefined
+                                }
                                 placeholder="Enter your password"
                                 className="h-12 w-full rounded-xl border border-[#ded7dc] bg-white px-4 text-sm text-[#28242f] shadow-[0_2px_8px_rgba(52,35,61,0.03)] outline-none transition placeholder:text-[#b3abb4] focus:border-[#806096] focus:ring-4 focus:ring-[#806096]/10"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
+                        </div>
+                        <div role="alert" aria-atomic="true">
+                            {error && (
+                                <div
+                                    id="login-error"
+                                    className="flex items-start gap-3 rounded-xl border border-[#e5c9c7] bg-[#fbefea] p-4"
+                                >
+                                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#f0d9cf] text-[#884c59]">
+                                        <svg
+                                            aria-hidden="true"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.75"
+                                            className="size-5"
+                                        >
+                                            <circle cx="12" cy="12" r="9" />
+                                            <path
+                                                strokeLinecap="round"
+                                                d="M12 7.5v5M12 16h.01"
+                                            />
+                                        </svg>
+                                    </span>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-semibold text-[#743e50]">
+                                            Unable to sign in
+                                        </p>
+                                        <p className="mt-1 text-sm leading-6 break-words text-[#805e68]">
+                                            {error}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <label className="flex items-center gap-3 pt-1 text-sm text-[#7b737e]">
@@ -117,13 +178,19 @@ function Login() {
                         </label>
 
                         <button
-                            type="button"
-                            className="h-12 w-full rounded-xl bg-[#5b3c78] text-sm font-semibold text-white shadow-[0_8px_20px_rgba(91,60,120,0.2)] transition hover:bg-[#4f326c] focus:ring-4 focus:ring-[#806096]/25 focus:outline-none"
-                            onClick={handleLogin}
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#5b3c78] text-sm font-semibold text-white shadow-[0_8px_20px_rgba(91,60,120,0.2)] transition hover:bg-[#4f326c] focus:ring-4 focus:ring-[#806096]/25 focus:outline-none disabled:cursor-wait disabled:opacity-70"
                         >
-                            Sign in
+                            {isSubmitting && (
+                                <span
+                                    aria-hidden="true"
+                                    className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white motion-reduce:animate-none"
+                                />
+                            )}
+                            {isSubmitting ? "Signing in…" : "Sign in"}
                         </button>
-                    </div>
+                    </form>
 
                     <p className="mt-9 text-center text-xs leading-5 text-[#9a919b]">
                         Need access? Contact your workspace administrator.
