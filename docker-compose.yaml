@@ -1,4 +1,18 @@
 services:
+  frontend:
+    image: node:22
+    working_dir: /var/www/frontend
+    command: ["sh", "-c", "npm ci --include=dev --include=optional && exec npm run dev -- --host 0.0.0.0 --port 5173 --strictPort"]
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/var/www/frontend
+      - type: volume
+        source: hris_frontend_node_modules
+        target: /var/www/frontend/node_modules
+        volume:
+          nocopy: true
+
   mysql:
     image: mysql:8.4
     container_name: hris-mysql
@@ -40,4 +54,5 @@ services:
       - mysql
 
 volumes:
+  hris_frontend_node_modules:
   hris_mysql_data:
