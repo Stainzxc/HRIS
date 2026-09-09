@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { login } from "../../services/authService";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigate = useNavigate();
 
     async function handleLogin(e) {
         e.preventDefault();
@@ -15,11 +17,12 @@ function Login() {
         try {
             const response = await login({ email, password });
             console.log("Login successful:", response.data);
+            navigate("/")
         } catch (error) {
             const message = error.response?.data?.message;
             setError(
                 !error.response
-                    ? messagex``
+                    ? message
                     : "Please check your email and password, then try again.",
             );
         } finally {
