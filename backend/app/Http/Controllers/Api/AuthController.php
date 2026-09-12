@@ -4,8 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AuthRequest;
-use App\Http\Requests\SignupRequest;
-use App\Models\SignupModel;
+use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,7 +28,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'User registered successfully', 'user' => $user], 201);
     }
     
-    public function login(AuthRequest $request)
+    public function login(LoginRequest $request)
     {
         $credentials = $request->validated();
 

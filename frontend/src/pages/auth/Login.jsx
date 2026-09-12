@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { login } from "../../services/authService";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -195,7 +195,17 @@ function Login() {
                         </button>
                     </form>
 
-                    <p className="mt-9 text-center text-xs leading-5 text-[#9a919b]">
+                    <p className="mt-8 text-center text-sm text-[#7b737e]">
+                        Don&apos;t have an account?{" "}
+                        <Link
+                            to="/signup"
+                            className="font-semibold text-[#76548b] transition hover:text-[#5b3c78]"
+                        >
+                            Create an account
+                        </Link>
+                    </p>
+
+                    <p className="mt-4 text-center text-xs leading-5 text-[#9a919b]">
                         Need access? Contact your workspace administrator.
                     </p>
                 </div>
