@@ -4,14 +4,33 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AuthRequest;
+use App\Http\Requests\SignupRequest;
+use App\Models\SignupModel;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    public function signup(AuthRequest $request)
+    {
+        $validatedData = $request->validated();
+
+        if (!$validatedData) {
+            return response()->json(['message' => 'Please complete all fields and try again.'], 422);
+        }
+
+        $user = User::create([
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'password' => bcrypt($validatedData['password']),
+        ]);
+
+        return response()->json(['message' => 'User registered successfully', 'user' => $user], 201);
+    }
+    
     public function login(AuthRequest $request)
     {
-        logger($request->all());
         $credentials = $request->validated();
 
         if(!Auth::attempt($credentials)) {
