@@ -1,58 +1,153 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# HRIS
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+HRIS is a human resources information system with a React frontend and a Laravel API backend. It provides authentication and CRUD APIs for employees, departments, and positions.
 
-## About Laravel
+## Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Frontend:** React 19, React Router, Axios, Vite, Tailwind CSS
+- **Backend:** Laravel 13, PHP 8.3+, Laravel Sanctum
+- **Database:** MySQL 8.4 (Docker) or SQLite for local development
+- **Development tools:** Docker Compose, PHPUnit
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Project structure
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```text
+.
+├── backend/       Laravel application and API
+├── frontend/      React/Vite application
+├── tests/         Project test suite
+├── docker-compose.yaml
+└── Dockerfile
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Requirements
 
-## Contributing
+For local development:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- PHP 8.3 or later
+- Composer
+- Node.js 22 or later and npm
+- MySQL, or SQLite if using the default Laravel configuration
 
-## Code of Conduct
+For the containerized setup, install Docker Desktop with Docker Compose.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Local installation
 
-## Security Vulnerabilities
+1. Install backend dependencies:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+   ```bash
+   cd backend
+   composer install
+   ```
+
+2. Create the backend environment file and application key:
+
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+   On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp`.
+
+3. Configure the database in `backend/.env`. The example file uses SQLite. Create the database file if needed, then run migrations and seed sample data:
+
+   ```powershell
+   New-Item database/database.sqlite -ItemType File
+   php artisan migrate --seed
+   ```
+
+4. Install frontend dependencies:
+
+   ```bash
+   cd ../frontend
+   npm install
+   ```
+
+5. Start the applications in separate terminals:
+
+   ```bash
+   cd backend
+   php artisan serve --port=8000
+   ```
+
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+   Open the frontend at [http://localhost:5173](http://localhost:5173). The frontend expects the API at `http://localhost:8000/api`.
+
+## Docker Compose
+
+Docker Compose starts the React development server, Laravel API, MySQL, and phpMyAdmin:
+
+```bash
+docker compose up --build
+```
+
+| Service | URL / port | Purpose |
+| --- | --- | --- |
+| Frontend | [http://localhost:5173](http://localhost:5173) | React/Vite app |
+| Backend API | [http://localhost:8000](http://localhost:8000) | Laravel API |
+| phpMyAdmin | [http://localhost:8081](http://localhost:8081) | MySQL administration |
+| MySQL | `localhost:3309` | Database server |
+
+The Compose database credentials are `hris` / `hris` with database `hris` and root password `root`. Run migrations with:
+
+```bash
+docker compose exec app php artisan migrate --seed
+```
+
+Stop the services with `docker compose down`.
+
+## API endpoints
+
+The API is served from `http://localhost:8000/api`.
+
+### Authentication
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `POST` | `/login` | Authenticate a user and return a Sanctum token |
+| `POST` | `/signup` | Register a user |
+| `GET` | `/user` | Return the authenticated user |
+| `POST` | `/logout` | Revoke the current token |
+
+`/user` and `/logout` require an `Authorization: Bearer <token>` header.
+
+### Resources
+
+Laravel API resource routes are available for `/departments`, `/employees`, and `/positions`. Each supports the standard `index`, `store`, `show`, `update`, and `destroy` operations.
+
+## Useful commands
+
+```bash
+# Backend, from backend/
+php artisan test
+php artisan route:list
+php artisan migrate:fresh --seed
+
+# Frontend, from frontend/
+npm run lint
+npm run build
+npm run preview
+```
+
+## Environment configuration
+
+Copy `backend/.env.example` to `backend/.env` for local development. When using Docker Compose with MySQL, use:
+
+```dotenv
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=hris
+DB_USERNAME=hris
+DB_PASSWORD=hris
+```
+
+Never commit `.env` files or production credentials.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is intended for internal/project use. Add the applicable license here if the project is released publicly.
