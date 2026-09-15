@@ -1,321 +1,488 @@
-import { Link } from "react-router-dom";
-import Icon from "../components/landing/Icon";
-import Brand from "../components/landing/Brand";
-import WorkspacePreview from "../components/landing/WorkspacePreview";
-import Eyebrow from "../components/landing/Eyebrow";
-import Principle from "../components/landing/Principle";
+import { useState } from "react";
 
-const features = [
-    {
-        number: "01",
-        title: "People, all in one place.",
-        description:
-            "Keep employee profiles and essential information organized in one central directory.",
-        icon: "people",
-        iconClass: "bg-[#ece3ef] text-[#5b3c78]",
-    },
-    {
-        number: "02",
-        title: "Give your teams structure.",
-        description:
-            "Bring clarity to your organization with a simple overview of departments and the people behind them.",
-        icon: "grid",
-        iconClass: "bg-[#f4e4d8] text-[#997158]",
-    },
-    {
-        number: "03",
-        title: "Make every role clear.",
-        description:
-            "Organize positions so you can see where everyone fits and keep your team information consistent.",
-        icon: "briefcase",
-        iconClass: "bg-[#e5eade] text-[#738063]",
-    },
+const navItems = [
+    { label: "Dashboard", icon: "dashboard" },
+    { label: "Employee Management", icon: "users" },
+    { label: "Task List", icon: "check" },
 ];
 
-const container =
-    "mx-auto w-full max-w-[1180px] px-6 sm:px-8 lg:px-12";
-const primaryButton =
-    "inline-flex items-center justify-center gap-[18px] rounded-[10px] bg-[#5b3c78] px-[22px] py-4 text-[13px] font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[#4f326c] focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-[#a786b5] motion-reduce:transform-none motion-reduce:transition-none";
+const employees = [
+    [
+        "Samantha Collins",
+        "Product Designer",
+        "Design",
+        "SC",
+        "bg-[#e8d8ec] text-[#79558a]",
+    ],
+    [
+        "Marcus Thompson",
+        "Senior Developer",
+        "Engineering",
+        "MT",
+        "bg-[#dce8e4] text-[#52776d]",
+    ],
+    [
+        "Elena Rodriguez",
+        "HR Specialist",
+        "People",
+        "ER",
+        "bg-[#f3dfd2] text-[#a16f55]",
+    ],
+    [
+        "Daniel Kim",
+        "Marketing Lead",
+        "Marketing",
+        "DK",
+        "bg-[#dce5f1] text-[#527092]",
+    ],
+];
 
-const textLink =
-    "inline-flex items-center gap-3 text-xs font-semibold text-[#5b3c78] transition-colors hover:text-[#956b9d]";
+const tasks = [
+    ["Review onboarding documents", "People team", "Today", "High"],
+    ["Schedule quarterly check-ins", "Samantha Collins", "Tomorrow", "Medium"],
+    ["Update benefits information", "HR Operations", "Sep 20", "Low"],
+];
 
-export default function Landing() {
+function Icon({ name, className = "" }) {
+    const paths = {
+        dashboard: (
+            <>
+                <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                <rect x="14" y="14" width="7" height="7" rx="1.5" />
+            </>
+        ),
+        users: (
+            <>
+                <circle cx="9" cy="8" r="3" />
+                <path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m3 10v-3a6 6 0 0 0-2-4" />
+            </>
+        ),
+        check: (
+            <>
+                <path d="m5 12 4 4L19 6" />
+                <circle cx="12" cy="12" r="9" />
+            </>
+        ),
+        search: (
+            <>
+                <circle cx="11" cy="11" r="6.5" />
+                <path d="m16 16 4.5 4.5" />
+            </>
+        ),
+        bell: (
+            <>
+                <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+            </>
+        ),
+        plus: (
+            <>
+                <path d="M12 5v14M5 12h14" />
+            </>
+        ),
+        arrow: <path d="M5 12h14m-6-6 6 6-6 6" />,
+        menu: (
+            <>
+                <path d="M4 7h16M4 12h16M4 17h16" />
+            </>
+        ),
+    };
     return (
-        <div className="min-h-screen overflow-x-hidden bg-[#f8f7f4] text-[#28242f]">
-            {" "}
-            {/* Accessibility */}
-            <a
-                href="#main-content"
-                className="fixed top-[-80px] left-[15px] z-50 bg-white px-5 py-3 text-[#5b3c78] focus:top-3"
-            >
-                Skip to content
-            </a>
-            {/* Header */}
-            <header
-                className={`${container} flex items-center justify-between gap-6 py-7 max-[440px]:gap-3 max-[440px]:py-5`}
-            >
-                <Brand />
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className={`size-5 shrink-0 ${className}`}
+        >
+            {paths[name]}
+        </svg>
+    );
+}
 
-                <nav
-                    aria-label="Main navigation"
-                    className="flex gap-8 text-[13px] text-[#65596d] max-[760px]:gap-[18px] max-[760px]:text-xs max-[440px]:hidden"
-                >
-                    <a
-                        href="#features"
-                        className="transition-colors hover:text-[#956b9d]"
-                    >
-                        Features
-                    </a>
-
-                    <a
-                        href="#approach"
-                        className="transition-colors hover:text-[#956b9d]"
-                    >
-                        Our approach
-                    </a>
-                </nav>
-
-                <Link
-                    to="/login"
-                    className={`${primaryButton} px-[18px] py-[11px] max-[440px]:gap-2 max-[440px]:px-3 max-[440px]:py-[9px]`}
-                >
-                    Sign in
-                    <Icon name="arrow" />
-                </Link>
-            </header>
-            <main id="main-content">
-                {/* Hero */}
-                <section
-                    aria-labelledby="hero-title"
-                    className={`${container} grid grid-cols-2 items-center gap-[58px] pt-[76px] pb-[100px] min-[1500px]:pt-[100px] min-[1500px]:pb-[120px] max-[1000px]:gap-[30px] max-[1000px]:pt-[55px] max-[1000px]:pb-[70px] max-[760px]:grid-cols-1 max-[760px]:gap-[46px] max-[760px]:pt-10`}
-                >
-                    <div className="max-[760px]:max-w-[540px]">
-                        <Eyebrow dot>BUILT AROUND YOUR PEOPLE</Eyebrow>
-
-                        <h1
-                            id="hero-title"
-                            className="my-6 text-[clamp(44px,4.6vw,64px)] leading-[1.08] font-medium tracking-[-0.055em] max-[1000px]:text-[47px] max-[760px]:max-w-[500px] max-[760px]:text-[clamp(44px,8vw,60px)]"
-                        >
-                            Good teams start with{" "}
-                            <em className="font-serif font-normal text-[#5b3c78]">
-                                great support.
-                            </em>
-                        </h1>
-
-                        <p className="max-w-[410px] text-[15px] leading-[1.9] text-[#7b737e] max-[760px]:max-w-[470px]">
-                            A little less paperwork. A lot more people. Bring
-                            your employees, departments, and positions together
-                            in one thoughtful HR workspace.
-                        </p>
-
-                        <div className="mt-[30px] flex flex-wrap items-center gap-6 max-[440px]:gap-5">
-                            <Link to="/login" className={primaryButton}>
-                                Go to your workspace
-                                <Icon name="arrow" />
-                            </Link>
-
-                            <a href="#features" className={textLink}>
-                                Explore the platform
-                                <span aria-hidden="true">↗</span>
-                            </a>
-                        </div>
-
-                        <p className="mt-7 flex items-center gap-2 text-[11px] text-[#8e8491]">
-                            <span
-                                aria-hidden="true"
-                                className="text-xl text-[#987ba4]"
-                            >
-                                ✳
-                            </span>
-                            Your people. Your organization. One place.
-                        </p>
-                    </div>
-
-                    <WorkspacePreview />
-                </section>
-
-                {/* Principles */}
-                <section
-                    aria-label="Platform principles"
-                    className={`${container} flex items-center justify-between gap-6 border-y border-[#e6dfe6] py-7 max-[1000px]:gap-[15px] max-[760px]:grid max-[760px]:grid-cols-2 max-[760px]:gap-[22px]`}
-                >
-                    <p className="text-xs leading-[1.7] text-[#8a7f8d]">
-                        A calmer way to
-                        <br />
-                        <strong className="font-medium text-[#584b61]">
-                            manage your everyday.
-                        </strong>
+function DashboardContent() {
+    const stats = [
+        [
+            "Total employees",
+            "124",
+            "+8.2% this month",
+            "users",
+            "bg-[#eee5f1] text-[#79558a]",
+        ],
+        [
+            "Departments",
+            "12",
+            "Across your organization",
+            "dashboard",
+            "bg-[#e5efe9] text-[#5c836f]",
+        ],
+        [
+            "Open tasks",
+            "18",
+            "5 due this week",
+            "check",
+            "bg-[#f7e9df] text-[#a5755b]",
+        ],
+        [
+            "On leave today",
+            "06",
+            "2 returning tomorrow",
+            "bell",
+            "bg-[#e4ebf5] text-[#5c7899]",
+        ],
+    ];
+    return (
+        <>
+            <div className="mb-8 flex items-end justify-between gap-5">
+                <div>
+                    <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-[#9b82a4] uppercase">
+                        Tuesday, September 15, 2026
                     </p>
-
-                    <Principle icon="people">People at the center</Principle>
-
-                    <Principle icon="grid">Everything connected</Principle>
-
-                    <Principle icon="check">Simply organized</Principle>
-                </section>
-
-                {/* Features */}
-                <section
-                    id="features"
-                    aria-labelledby="features-title"
-                    className={`${container} scroll-mt-[30px] py-[84px] max-[760px]:py-[60px]`}
-                >
-                    <div className="mb-[34px] flex items-end justify-between gap-10 max-[760px]:flex-col max-[760px]:items-start max-[760px]:gap-5">
-                        <div>
-                            <Eyebrow>A PLACE FOR EVERYTHING</Eyebrow>
-
-                            <h2
-                                id="features-title"
-                                className="mt-4 text-[35px] leading-[1.2] font-medium tracking-[-0.04em] max-[440px]:text-[30px]"
+                    <h1 className="text-3xl font-medium tracking-[-0.04em] text-[#28242f] sm:text-4xl">
+                        Good morning, Alex.
+                    </h1>
+                    <p className="mt-2 text-sm text-[#837a85]">
+                        Here&apos;s what&apos;s happening across your workspace
+                        today.
+                    </p>
+                </div>
+                <button className="hidden h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c] sm:flex">
+                    <Icon name="plus" className="size-4" /> Add employee
+                </button>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {stats.map(([label, value, note, icon, tone]) => (
+                    <div
+                        key={label}
+                        className="rounded-2xl border border-[#e9e2e9] bg-white p-5 shadow-[0_5px_20px_rgba(65,43,72,0.025)]"
+                    >
+                        <div className="flex items-start justify-between">
+                            <div
+                                className={`grid size-10 place-items-center rounded-xl ${tone}`}
                             >
-                                The essentials.
-                                <br />
-                                Working better together.
-                            </h2>
+                                <Icon name={icon} className="size-[18px]" />
+                            </div>
+                            <span className="text-[10px] font-semibold tracking-widest text-[#b1a8b2] uppercase">
+                                This month
+                            </span>
                         </div>
-
-                        <p className="max-w-[300px] text-[13px] leading-[1.9] text-[#7b737e] max-[760px]:max-w-[450px]">
-                            Clear information makes everyday work easier. Give
-                            your HR team a home for the details that matter.
+                        <p className="mt-5 text-3xl font-medium tracking-[-0.05em] text-[#302a35]">
+                            {value}
+                        </p>
+                        <p className="mt-1 text-xs font-medium text-[#625768]">
+                            {label}
+                        </p>
+                        <p className="mt-3 text-[11px] text-[#9a909c]">
+                            {note}
                         </p>
                     </div>
-
-                    <div className="grid grid-cols-3 gap-[18px] max-[760px]:grid-cols-1">
-                        {features.map((feature) => (
-                            <article
-                                key={feature.number}
-                                className="rounded-[13px] border border-[#e7dfe6] bg-[#fbfaf8] p-[27px] max-[1000px]:p-5 max-[760px]:p-[25px]"
+                ))}
+            </div>
+            <div className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+                <section className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-base font-semibold text-[#352e39]">
+                                Recent employees
+                            </h2>
+                            <p className="mt-1 text-xs text-[#9a909c]">
+                                The latest additions to your organization
+                            </p>
+                        </div>
+                        <button className="text-xs font-semibold text-[#76548b]">
+                            View all <span aria-hidden="true">→</span>
+                        </button>
+                    </div>
+                    <div className="mt-5 overflow-x-auto">
+                        <table className="w-full min-w-[550px] text-left">
+                            <thead className="border-b border-[#eee9ee] text-[10px] font-semibold tracking-[0.13em] text-[#aaa0ad] uppercase">
+                                <tr>
+                                    <th className="pb-3 font-semibold">
+                                        Employee
+                                    </th>
+                                    <th className="pb-3 font-semibold">
+                                        Department
+                                    </th>
+                                    <th className="pb-3 font-semibold">
+                                        Status
+                                    </th>
+                                    <th className="pb-3 font-semibold">
+                                        Joined
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#f1edf1]">
+                                {employees.map(
+                                    (
+                                        [
+                                            name,
+                                            role,
+                                            department,
+                                            initials,
+                                            color,
+                                        ],
+                                        i,
+                                    ) => (
+                                        <tr
+                                            key={name}
+                                            className="text-xs text-[#625968]"
+                                        >
+                                            <td className="py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <span
+                                                        className={`grid size-8 place-items-center rounded-full text-[10px] font-semibold ${color}`}
+                                                    >
+                                                        {initials}
+                                                    </span>
+                                                    <div>
+                                                        <p className="font-semibold text-[#3c3440]">
+                                                            {name}
+                                                        </p>
+                                                        <p className="mt-0.5 text-[11px] text-[#9a909c]">
+                                                            {role}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="py-4">
+                                                {department}
+                                            </td>
+                                            <td className="py-4">
+                                                <span className="rounded-full bg-[#e6f1ea] px-2.5 py-1 text-[10px] font-semibold text-[#56806a]">
+                                                    Active
+                                                </span>
+                                            </td>
+                                            <td className="py-4 text-[#918793]">
+                                                Sep {18 - i * 2}, 2026
+                                            </td>
+                                        </tr>
+                                    ),
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                <section className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-base font-semibold text-[#352e39]">
+                                Task overview
+                            </h2>
+                            <p className="mt-1 text-xs text-[#9a909c]">
+                                Keep your team moving forward
+                            </p>
+                        </div>
+                        <button className="text-xs font-semibold text-[#76548b]">
+                            View all <span aria-hidden="true">→</span>
+                        </button>
+                    </div>
+                    <div className="mt-5 space-y-4">
+                        {tasks.map(([title, owner, due, priority]) => (
+                            <div
+                                key={title}
+                                className="flex gap-3 border-b border-[#f1edf1] pb-4 last:border-0 last:pb-0"
                             >
-                                <div className="flex items-center justify-between text-[10px] text-[#b8aabc]">
-                                    <span
-                                        className={`grid size-[42px] place-items-center rounded-xl ${feature.iconClass}`}
-                                    >
-                                        <Icon name={feature.icon} />
-                                    </span>
-
-                                    <span>{feature.number}</span>
+                                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-[#d5c9d9] text-[#866896]">
+                                    <Icon name="check" className="size-3" />
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                    <p className="truncate text-xs font-semibold text-[#493e4d]">
+                                        {title}
+                                    </p>
+                                    <p className="mt-1 text-[11px] text-[#9a909c]">
+                                        {owner} · Due {due}
+                                    </p>
                                 </div>
-
-                                <h3 className="mt-7 text-[17px] font-medium tracking-[-0.035em] max-[760px]:mt-[18px]">
-                                    {feature.title}
-                                </h3>
-
-                                <p className="mt-3 text-xs leading-[1.9] text-[#7b737e]">
-                                    {feature.description}
-                                </p>
-                            </article>
+                                <span
+                                    className={`h-fit rounded-full px-2 py-1 text-[9px] font-semibold ${priority === "High" ? "bg-[#fae5e2] text-[#aa665e]" : priority === "Medium" ? "bg-[#f8eddb] text-[#a57c51]" : "bg-[#e9eef4] text-[#627b98]"}`}
+                                >
+                                    {priority}
+                                </span>
+                            </div>
                         ))}
                     </div>
+                    <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-[#e3dbe5] py-3 text-xs font-semibold text-[#76548b]">
+                        Go to task list <Icon name="arrow" className="size-4" />
+                    </button>
                 </section>
+            </div>
+        </>
+    );
+}
 
-                {/* Approach */}
-                <section
-                    id="approach"
-                    aria-labelledby="approach-title"
-                    className={`${container} grid scroll-mt-[30px] grid-cols-[0.85fr_1fr] items-center gap-20 pb-[84px] max-[1000px]:gap-10 max-[760px]:grid-cols-1 max-[760px]:gap-[30px] max-[760px]:pb-[60px]`}
-                >
-                    <div
-                        aria-hidden="true"
-                        className="relative grid min-h-[300px] place-items-center overflow-hidden rounded-2xl bg-[#eee7ef] max-[760px]:min-h-[280px]"
-                    >
-                        <div className="absolute size-60 rounded-full border border-[#c6b4cf]" />
-
-                        <div className="absolute h-[180px] w-[300px] rotate-[-40deg] rounded-[50%] border border-[#d6c7dc]" />
-
-                        <span className="absolute top-7 left-[28%] z-10 rotate-[-8deg] rounded-lg border border-[#e0d6e5] bg-[#faf7fb] px-[17px] py-[9px] text-[10px] text-[#7c6589]">
-                            People
-                        </span>
-
-                        <span className="absolute top-[45%] right-[7%] z-10 rotate-6 rounded-lg border border-[#e0d6e5] bg-[#faf7fb] px-[17px] py-[9px] text-[10px] text-[#7c6589]">
-                            Purpose
-                        </span>
-
-                        <span className="absolute bottom-8 left-[14%] z-10 rotate-[-5deg] rounded-lg border border-[#e0d6e5] bg-[#faf7fb] px-[17px] py-[9px] text-[10px] text-[#7c6589]">
-                            Connection
-                        </span>
-
-                        <span className="z-[1] grid size-28 place-content-center rounded-full bg-[#5b3c78] text-center text-[32px] tracking-[-0.07em] text-[#f0cdb7]">
-                            LBE
-                            <span className="mt-[7px] text-[6px] tracking-[0.17em]">
-                                GROW TOGETHER
-                            </span>
-                        </span>
-                    </div>
-
-                    <div>
-                        <Eyebrow>LEAD. BY. EXAMPLE.</Eyebrow>
-
-                        <h2
-                            id="approach-title"
-                            className="my-[18px] text-[34px] leading-[1.25] font-medium tracking-[-0.04em] max-[440px]:text-[30px]"
-                        >
-                            Behind every great organization,
-                            <br />
-                            <em className="font-serif font-normal text-[#5b3c78]">
-                                there are people.
-                            </em>
-                        </h2>
-
-                        <p className="max-w-[420px] text-[13px] leading-[1.9] text-[#7b737e]">
-                            We believe managing people should feel more human.
-                            Start with organized information, bring your teams
-                            into focus, and make space for meaningful work.
-                        </p>
-
-                        <a href="#get-started" className={`${textLink} mt-6`}>
-                            Give your people a better starting point
-                            <Icon name="arrow" />
-                        </a>
-                    </div>
-                </section>
-
-                {/* CTA */}
-                <section
-                    id="get-started"
-                    className={`${container} flex items-center justify-between gap-8 rounded-[18px] bg-[#5b3c78] px-12 py-11 text-[#fff7f1] max-[760px]:flex-col max-[760px]:items-start max-[760px]:p-8 max-[440px]:p-7`}
-                >
-                    <div>
-                        <Eyebrow light>YOUR NEXT CHAPTER STARTS HERE</Eyebrow>
-
-                        <h2 className="my-3 text-[34px] font-medium tracking-[-0.04em] max-[440px]:text-[30px]">
-                            A better workday awaits.
-                        </h2>
-
-                        <p className="text-xs text-[#dac9df]">
-                            Sign in and make yourself at home.
-                        </p>
-                    </div>
-
-                    <div>
-                        <Link
-                            to="/login"
-                            className={`${primaryButton} bg-[#f0cdb7] text-[#5b3c78] hover:bg-[#ffe1ce]`}
-                        >
-                            Enter your workspace
-                            <Icon name="arrow" />
-                        </Link>
-
-                        <p className="mt-3 max-w-[250px] text-[9px] leading-[1.8] text-[#dac9df]">
-                            Need access? Contact your workspace administrator.
-                        </p>
-                    </div>
-                </section>
-            </main>
-            {/* Footer */}
-            <footer
-                className={`${container} flex items-center justify-between gap-6 py-9 max-[760px]:flex-wrap`}
-            >
-                <Brand footer />
-
-                <p className="text-[10px] text-[#988c9b] max-[760px]:hidden">
-                    Thoughtfully organized. Human at heart.
+function PlaceholderContent({ title, description, icon }) {
+    return (
+        <div className="grid min-h-[60vh] place-items-center rounded-2xl border border-dashed border-[#d9cedc] bg-white/60 p-8 text-center">
+            <div>
+                <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#eee5f1] text-[#79558a]">
+                    <Icon name={icon} className="size-7" />
+                </div>
+                <h1 className="mt-5 text-2xl font-medium tracking-[-0.04em] text-[#352e39]">
+                    {title}
+                </h1>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#8c818e]">
+                    {description} This static view is ready for you to connect
+                    to your data.
                 </p>
+            </div>
+        </div>
+    );
+}
 
-                <span className="text-[10px] text-[#988c9b]">
-                    © {new Date().getFullYear()} LBE
-                </span>
-            </footer>
+export default function Landing() {
+    const [active, setActive] = useState("Dashboard");
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
+    const content =
+        active === "Dashboard" ? (
+            <DashboardContent />
+        ) : active === "Employee Management" ? (
+            <PlaceholderContent
+                title="Employee Management"
+                description="View, organize, and manage everyone in your organization from one place."
+                icon="users"
+            />
+        ) : (
+            <PlaceholderContent
+                title="Task List"
+                description="Keep track of important work, owners, and deadlines across your workspace."
+                icon="check"
+            />
+        );
+    return (
+        <div className="min-h-screen bg-[#f8f7f4] text-[#28242f] lg:flex">
+            <aside
+                className={`fixed inset-y-0 left-0 z-30 w-[260px] border-r border-[#e8e0e8] bg-[#fcfbf9] px-5 py-6 transition-transform lg:static lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+            >
+                <div className="flex items-center gap-3 px-2">
+                    <span className="grid size-9 place-items-center rounded-xl bg-[#5b3c78] text-xs font-bold tracking-tight text-white">
+                        LBE
+                    </span>
+                    <span className="text-[12px] font-semibold tracking-[0.16em] text-[#5b3c78] uppercase">
+                        Lead. By. Example
+                    </span>
+                </div>
+                <div className="mt-12">
+                    <p className="px-3 text-[10px] font-semibold tracking-[0.18em] text-[#aaa0ad] uppercase">
+                        Workspace
+                    </p>
+                    <nav
+                        className="mt-3 space-y-1"
+                        aria-label="Workspace navigation"
+                    >
+                        {navItems.map((item) => (
+                            <button
+                                key={item.label}
+                                onClick={() => {
+                                    setActive(item.label);
+                                    setMobileOpen(false);
+                                }}
+                                className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-[13px] font-medium transition ${active === item.label ? "bg-[#eee5f1] text-[#5b3c78]" : "text-[#756b78] hover:bg-[#f4eff4] hover:text-[#5b3c78]"}`}
+                            >
+                                <Icon
+                                    name={item.icon}
+                                    className="size-[18px]"
+                                />
+                                {item.label}
+                            </button>
+                        ))}
+                    </nav>
+                </div>
+                <div className="absolute right-5 bottom-6 left-5 rounded-2xl bg-[#f1eaf3] p-4">
+                    <p className="text-[11px] font-semibold text-[#5b3c78]">
+                        Need a hand?
+                    </p>
+                    <p className="mt-1 text-[10px] leading-5 text-[#836e8d]">
+                        Visit the help center for workspace guidance.
+                    </p>
+                    <button className="mt-3 text-[10px] font-semibold text-[#5b3c78]">
+                        Open help center →
+                    </button>
+                </div>
+            </aside>
+            <div className="min-w-0 flex-1">
+                <header className="flex h-[76px] items-center justify-between border-b border-[#e8e0e8] bg-[#fcfbf9]/80 px-5 backdrop-blur sm:px-8 lg:px-10">
+                    <button
+                        className="rounded-lg p-2 text-[#6f6472] lg:hidden"
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                        aria-label="Toggle navigation"
+                    >
+                        <Icon name="menu" />
+                    </button>
+                    <div className="relative hidden w-full max-w-[300px] sm:block">
+                        <Icon
+                            name="search"
+                            className="absolute top-2.5 left-3 size-4 text-[#a69ba8]"
+                        />
+                        <input
+                            placeholder="Search your workspace"
+                            className="h-9 w-full rounded-lg border border-[#e7e0e7] bg-white pl-9 text-xs text-[#403746] outline-none placeholder:text-[#b0a6b1] focus:border-[#a786b5]"
+                        />
+                    </div>
+                    <div className="ml-auto flex items-center gap-4">
+                        <button
+                            className="relative text-[#786c7c]"
+                            aria-label="Notifications"
+                        >
+                            <Icon name="bell" className="size-[19px]" />
+                            <span className="absolute -top-1 -right-1 size-2 rounded-full bg-[#c78172] ring-2 ring-[#fcfbf9]" />
+                        </button>
+                        <div className="h-7 w-px bg-[#e8e0e8]" />
+                        <button
+                            onClick={() => setProfileOpen(!profileOpen)}
+                            aria-expanded={profileOpen}
+                            aria-haspopup="menu"
+                            className="group flex items-center gap-3 rounded-xl px-2 py-1.5 text-left transition hover:bg-[#f4eff4]"
+                        >
+                            <span className="grid size-9 place-items-center rounded-full bg-[#eadcf0] text-xs font-semibold text-[#79558a] ring-2 ring-white">
+                                AJ
+                            </span>
+                            <span className="hidden text-left sm:block">
+                                <span className="block text-[13px] font-semibold leading-4 text-[#443a47]">
+                                    Alex Johnson
+                                </span>
+                                <span className="mt-0.5 block text-[11px] leading-4 text-[#9b909d]">
+                                    Administrator
+                                </span>
+                            </span>
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`ml-1 hidden size-4 text-[#988d9d] transition-transform duration-200 sm:block ${profileOpen ? "rotate-180" : ""}`}><path d="m4 6 4 4 4-4" /></svg>
+                        </button>
+                        {profileOpen && (
+                            <div
+                                role="menu"
+                                className="absolute top-14 right-5 z-40 w-52 rounded-xl border border-[#e8e0e8] bg-white p-2 shadow-[0_12px_30px_rgba(65,43,72,0.12)]"
+                            >
+                                <button
+                                    role="menuitem"
+                                    className="w-full rounded-lg px-3 py-2.5 text-left text-xs text-[#675b6b] hover:bg-[#f7f3f7]"
+                                >
+                                    My profile
+                                </button>
+                                <button
+                                    role="menuitem"
+                                    className="w-full rounded-lg px-3 py-2.5 text-left text-xs text-[#675b6b] hover:bg-[#f7f3f7]"
+                                >
+                                    Account settings
+                                </button>
+                                <div className="my-1 border-t border-[#f0ebf0]" />
+                                <button
+                                    role="menuitem"
+                                    className="w-full rounded-lg px-3 py-2.5 text-left text-xs font-semibold text-[#a05f61] hover:bg-[#fbefef]"
+                                >
+                                    Logout
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </header>
+                <main className="mx-auto max-w-[1440px] p-5 sm:p-8 lg:p-10">
+                    {content}
+                </main>
+            </div>
         </div>
     );
 }

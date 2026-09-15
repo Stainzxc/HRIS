@@ -1,4 +1,3 @@
-import React from 'react'
 
 function Eyebrow({ children, dot = false, light = false }) {
   return (

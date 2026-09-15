@@ -1,4 +1,3 @@
-import React from 'react'
 import PreviewStat from './PreviewStat'
 import Icon from './Icon'
 
