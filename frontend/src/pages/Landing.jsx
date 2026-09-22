@@ -37,6 +37,15 @@ const employees = [
     ],
 ];
 
+const directoryEmployees = [
+    ["Samantha Collins", "Product Designer", "Design", "samantha@lbe.co", "Full-time", "Active", "SC", "bg-[#e8d8ec] text-[#79558a]"],
+    ["Marcus Thompson", "Senior Developer", "Engineering", "marcus@lbe.co", "Full-time", "Active", "MT", "bg-[#dce8e4] text-[#52776d]"],
+    ["Elena Rodriguez", "HR Specialist", "People", "elena@lbe.co", "Full-time", "On leave", "ER", "bg-[#f3dfd2] text-[#a16f55]"],
+    ["Daniel Kim", "Marketing Lead", "Marketing", "daniel@lbe.co", "Full-time", "Active", "DK", "bg-[#dce5f1] text-[#527092]"],
+    ["Priya Shah", "Finance Analyst", "Finance", "priya@lbe.co", "Part-time", "Active", "PS", "bg-[#f2e7cf] text-[#9a7848]"],
+    ["Noah Williams", "Customer Success", "Operations", "noah@lbe.co", "Full-time", "Inactive", "NW", "bg-[#e9e5e5] text-[#7c7474]"],
+];
+
 const tasks = [
     ["Review onboarding documents", "People team", "Today", "High"],
     ["Schedule quarterly check-ins", "Samantha Collins", "Tomorrow", "Medium"],
@@ -314,6 +323,49 @@ function DashboardContent() {
     );
 }
 
+function EmployeeContent() {
+    return (
+        <>
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
+                <div>
+                    <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-[#9b82a4] uppercase">People directory</p>
+                    <h1 className="text-3xl font-medium tracking-[-0.04em] text-[#28242f] sm:text-4xl">Employee management</h1>
+                    <p className="mt-2 text-sm text-[#837a85]">Keep your team&apos;s information organized and up to date.</p>
+                </div>
+                <button className="flex h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c]"><Icon name="plus" className="size-4" /> Add employee</button>
+            </div>
+            <div className="mb-6 grid gap-4 sm:grid-cols-3">
+                {[['124', 'Total employees'], ['12', 'Departments'], ['118', 'Active employees']].map(([value, label]) => (
+                    <div key={label} className="rounded-2xl border border-[#e9e2e9] bg-white p-5 shadow-[0_5px_20px_rgba(65,43,72,0.025)]">
+                        <p className="text-3xl font-medium tracking-[-0.05em] text-[#302a35]">{value}</p>
+                        <p className="mt-1 text-xs font-medium text-[#625768]">{label}</p>
+                    </div>
+                ))}
+            </div>
+            <section className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div><h2 className="text-base font-semibold text-[#352e39]">All employees</h2><p className="mt-1 text-xs text-[#9a909c]">A complete view of everyone in your organization</p></div>
+                    <div className="flex w-full gap-2 sm:w-auto">
+                        <div className="relative flex-1 sm:w-56"><Icon name="search" className="absolute top-2.5 left-3 size-4 text-[#a69ba8]" /><input placeholder="Search employees" className="h-9 w-full rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] pl-9 text-xs outline-none placeholder:text-[#b0a6b1] focus:border-[#a786b5]" /></div>
+                        <button className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b]">Filter</button>
+                    </div>
+                </div>
+                <div className="mt-5 overflow-x-auto">
+                    <table className="w-full min-w-[800px] text-left">
+                        <thead className="border-b border-[#eee9ee] text-[10px] font-semibold tracking-[0.13em] text-[#aaa0ad] uppercase"><tr><th className="pb-3 font-semibold">Employee</th><th className="pb-3 font-semibold">Department</th><th className="pb-3 font-semibold">Email</th><th className="pb-3 font-semibold">Employment</th><th className="pb-3 font-semibold">Status</th><th className="pb-3 font-semibold"> </th></tr></thead>
+                        <tbody className="divide-y divide-[#f1edf1]">{directoryEmployees.map(([name, role, department, email, employment, status, initials, color]) => <tr key={name} className="text-xs text-[#625968]">
+                            <td className="py-4"><div className="flex items-center gap-3"><span className={`grid size-9 place-items-center rounded-full text-[10px] font-semibold ${color}`}>{initials}</span><div><p className="font-semibold text-[#3c3440]">{name}</p><p className="mt-0.5 text-[11px] text-[#9a909c]">{role}</p></div></div></td>
+                            <td className="py-4">{department}</td><td className="py-4 text-[#918793]">{email}</td><td className="py-4">{employment}</td>
+                            <td className="py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${status === 'Active' ? 'bg-[#e6f1ea] text-[#56806a]' : status === 'On leave' ? 'bg-[#f8eddb] text-[#a57c51]' : 'bg-[#eee9eb] text-[#82777f]'}`}>{status}</span></td><td className="py-4 text-right text-[#9a909c]">•••</td>
+                        </tr>)}</tbody>
+                    </table>
+                </div>
+                <div className="mt-5 flex items-center justify-between border-t border-[#f1edf1] pt-4 text-[11px] text-[#9a909c]"><span>Showing 6 of 124 employees</span><div className="flex gap-2"><button className="rounded-lg border border-[#e3dbe5] px-3 py-1.5">Previous</button><button className="rounded-lg border border-[#e3dbe5] px-3 py-1.5 text-[#675b6b]">Next</button></div></div>
+            </section>
+        </>
+    );
+}
+
 function PlaceholderContent({ title, description, icon }) {
     return (
         <div className="grid min-h-[60vh] place-items-center rounded-2xl border border-dashed border-[#d9cedc] bg-white/60 p-8 text-center">
@@ -341,11 +393,7 @@ export default function Landing() {
         active === "Dashboard" ? (
             <DashboardContent />
         ) : active === "Employee Management" ? (
-            <PlaceholderContent
-                title="Employee Management"
-                description="View, organize, and manage everyone in your organization from one place."
-                icon="users"
-            />
+            <EmployeeContent />
         ) : (
             <PlaceholderContent
                 title="Task List"
