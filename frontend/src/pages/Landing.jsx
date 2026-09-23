@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getEmployees } from "../services/employeeService";
 
 const navItems = [
     { label: "Dashboard", icon: "dashboard" },
@@ -324,6 +325,16 @@ function DashboardContent() {
 }
 
 function EmployeeContent() {
+    const [employeesData, setEmployeesData] = useState("");
+
+    useEffect(() => {
+        getEmployees()
+        .then((response) => {setEmployeesData(response.data)})
+        .catch((error) => {
+            console.error("Error fetching employees:", error);
+        });
+    }, []);
+console.log("Employees data:", employeesData);
     return (
         <>
             <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
@@ -385,6 +396,82 @@ function PlaceholderContent({ title, description, icon }) {
     );
 }
 
+function TaskListContent() {
+    const taskItems = [
+        ["Review onboarding documents", "People team", "Today", "High", "In progress"],
+        ["Schedule quarterly check-ins", "Samantha Collins", "Tomorrow", "Medium", "To do"],
+        ["Update benefits information", "HR Operations", "Sep 20", "Low", "To do"],
+        ["Prepare monthly payroll report", "Finance team", "Sep 22", "High", "Completed"],
+        ["Send employee satisfaction survey", "Alex Johnson", "Sep 24", "Medium", "In progress"],
+    ];
+
+    const statusStyles = {
+        "To do": "bg-[#f3eff4] text-[#77647f]",
+        "In progress": "bg-[#f8eddb] text-[#a57c51]",
+        Completed: "bg-[#e6f1ea] text-[#56806a]",
+    };
+
+    const priorityStyles = {
+        High: "bg-[#fae5e2] text-[#aa665e]",
+        Medium: "bg-[#f8eddb] text-[#a57c51]",
+        Low: "bg-[#e9eef4] text-[#627b98]",
+    };
+
+    return (
+        <>
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
+                <div>
+                    <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-[#9b82a4] uppercase">Workspace tasks</p>
+                    <h1 className="text-3xl font-medium tracking-[-0.04em] text-[#28242f] sm:text-4xl">Task list</h1>
+                    <p className="mt-2 text-sm text-[#837a85]">Keep track of important work, owners, and deadlines.</p>
+                </div>
+                <button className="flex h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c]">
+                    <Icon name="plus" className="size-4" /> Add task
+                </button>
+            </div>
+
+            <div className="mb-6 grid gap-4 sm:grid-cols-3">
+                {[["18", "Open tasks"], ["05", "Due this week"], ["12", "Completed"]].map(([value, label]) => (
+                    <div key={label} className="rounded-2xl border border-[#e9e2e9] bg-white p-5 shadow-[0_5px_20px_rgba(65,43,72,0.025)]">
+                        <p className="text-3xl font-medium tracking-[-0.05em] text-[#302a35]">{value}</p>
+                        <p className="mt-1 text-xs font-medium text-[#625768]">{label}</p>
+                    </div>
+                ))}
+            </div>
+
+            <section className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h2 className="text-base font-semibold text-[#352e39]">All tasks</h2>
+                        <p className="mt-1 text-xs text-[#9a909c]">A clear view of your team&apos;s current work</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <button className="rounded-lg bg-[#eee5f1] px-3 py-2 text-xs font-semibold text-[#5b3c78]">All tasks</button>
+                        <button className="rounded-lg border border-[#e3dbe5] px-3 py-2 text-xs font-semibold text-[#675b6b]">My tasks</button>
+                    </div>
+                </div>
+                <div className="mt-5 overflow-x-auto">
+                    <table className="w-full min-w-[720px] text-left">
+                        <thead className="border-b border-[#eee9ee] text-[10px] font-semibold tracking-[0.13em] text-[#aaa0ad] uppercase">
+                            <tr><th className="pb-3 font-semibold">Task</th><th className="pb-3 font-semibold">Owner</th><th className="pb-3 font-semibold">Due date</th><th className="pb-3 font-semibold">Priority</th><th className="pb-3 font-semibold">Status</th></tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#f1edf1]">
+                            {taskItems.map(([title, owner, due, priority, status]) => (
+                                <tr key={title} className="text-xs text-[#625968]">
+                                    <td className="py-4"><div className="flex items-center gap-3"><span className={`grid size-7 place-items-center rounded-full border ${status === "Completed" ? "border-[#b9d7c4] bg-[#e6f1ea] text-[#56806a]" : "border-[#d5c9d9] text-[#866896]"}`}><Icon name="check" className="size-3.5" /></span><span className={`font-semibold ${status === "Completed" ? "text-[#9a909c] line-through" : "text-[#3c3440]"}`}>{title}</span></div></td>
+                                    <td className="py-4">{owner}</td><td className="py-4 text-[#918793]">{due}</td>
+                                    <td className="py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${priorityStyles[priority]}`}>{priority}</span></td>
+                                    <td className="py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusStyles[status]}`}>{status}</span></td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </>
+    );
+}
+
 export default function Landing() {
     const [active, setActive] = useState("Dashboard");
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -394,6 +481,8 @@ export default function Landing() {
             <DashboardContent />
         ) : active === "Employee Management" ? (
             <EmployeeContent />
+        ) : active === "Task List" ? (
+            <TaskListContent />
         ) : (
             <PlaceholderContent
                 title="Task List"
