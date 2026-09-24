@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AddEmployeeModal from "../components/AddEmployeeModal";
 import { getEmployees } from "../services/employeeService";
 
 const navItems = [
@@ -105,7 +106,7 @@ function Icon({ name, className = "" }) {
     );
 }
 
-function DashboardContent() {
+function DashboardContent({ onAddEmployee }) {
     const stats = [
         [
             "Total employees",
@@ -151,7 +152,7 @@ function DashboardContent() {
                         today.
                     </p>
                 </div>
-                <button className="hidden h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c] sm:flex">
+                <button onClick={onAddEmployee} className="hidden h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c] sm:flex">
                     <Icon name="plus" className="size-4" /> Add employee
                 </button>
             </div>
@@ -315,7 +316,7 @@ function DashboardContent() {
     );
 }
 
-function EmployeeContent() {
+function EmployeeContent({ onAddEmployee }) {
     const [employeesData, setEmployeesData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -333,6 +334,7 @@ function EmployeeContent() {
             .finally(() => { if (!ignore) setLoading(false); });
         return () => { ignore = true; };
     }, []);
+    
     const formatLabel = (value) => value
         ? value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase())
         : "Not specified";
@@ -365,7 +367,7 @@ function EmployeeContent() {
                         date.
                     </p>
                 </div>
-                <button className="flex h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c]">
+                <button onClick={onAddEmployee} className="flex h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c]">
                     <Icon name="plus" className="size-4" /> Add employee
                 </button>
             </div>
@@ -698,11 +700,18 @@ export default function Landing() {
     const [active, setActive] = useState("Dashboard");
     const [mobileOpen, setMobileOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
+    const [addEmployeeOpen, setAddEmployeeOpen] = useState(false);
+    const [employeeVersion, setEmployeeVersion] = useState(0);
+    const [employeeNotice, setEmployeeNotice] = useState("");
+    const openAddEmployee = () => {
+        setEmployeeNotice("");
+        setAddEmployeeOpen(true);
+    };
     const content =
         active === "Dashboard" ? (
-            <DashboardContent />
+            <DashboardContent onAddEmployee={openAddEmployee} />
         ) : active === "Employee Management" ? (
-            <EmployeeContent />
+            <EmployeeContent key={employeeVersion} onAddEmployee={openAddEmployee} />
         ) : active === "Task List" ? (
             <TaskListContent />
         ) : (
@@ -850,7 +859,19 @@ export default function Landing() {
                     </div>
                 </header>
                 <main className="mx-auto max-w-[1440px] p-5 sm:p-8 lg:p-10">
+                    {employeeNotice && <p role="status" className="mb-4 rounded-lg bg-[#e6f1ea] p-3 text-sm text-[#56806a]">{employeeNotice}</p>}
                     {content}
+                    {addEmployeeOpen && (
+                        <AddEmployeeModal
+                            onClose={() => setAddEmployeeOpen(false)}
+                            onCreated={() => {
+                                setAddEmployeeOpen(false);
+                                setEmployeeVersion((version) => version + 1);
+                                setActive("Employee Management");
+                                setEmployeeNotice("Employee added successfully.");
+                            }}
+                        />
+                    )}
                 </main>
             </div>
         </div>
