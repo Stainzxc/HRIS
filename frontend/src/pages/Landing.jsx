@@ -38,15 +38,6 @@ const employees = [
     ],
 ];
 
-const directoryEmployees = [
-    ["Samantha Collins", "Product Designer", "Design", "samantha@lbe.co", "Full-time", "Active", "SC", "bg-[#e8d8ec] text-[#79558a]"],
-    ["Marcus Thompson", "Senior Developer", "Engineering", "marcus@lbe.co", "Full-time", "Active", "MT", "bg-[#dce8e4] text-[#52776d]"],
-    ["Elena Rodriguez", "HR Specialist", "People", "elena@lbe.co", "Full-time", "On leave", "ER", "bg-[#f3dfd2] text-[#a16f55]"],
-    ["Daniel Kim", "Marketing Lead", "Marketing", "daniel@lbe.co", "Full-time", "Active", "DK", "bg-[#dce5f1] text-[#527092]"],
-    ["Priya Shah", "Finance Analyst", "Finance", "priya@lbe.co", "Part-time", "Active", "PS", "bg-[#f2e7cf] text-[#9a7848]"],
-    ["Noah Williams", "Customer Success", "Operations", "noah@lbe.co", "Full-time", "Inactive", "NW", "bg-[#e9e5e5] text-[#7c7474]"],
-];
-
 const tasks = [
     ["Review onboarding documents", "People team", "Today", "High"],
     ["Schedule quarterly check-ins", "Samantha Collins", "Tomorrow", "Medium"],
@@ -325,53 +316,187 @@ function DashboardContent() {
 }
 
 function EmployeeContent() {
-    const [employeesData, setEmployeesData] = useState("");
+    const [employeesData, setEmployeesData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
+        let ignore = false;
         getEmployees()
-        .then((response) => {setEmployeesData(response.data)})
-        .catch((error) => {
-            console.error("Error fetching employees:", error);
-        });
+            .then((response) => {
+                if (!Array.isArray(response.data.data)) throw new Error("Invalid employee response");
+                if (!ignore) setEmployeesData(response.data.data);
+            })
+            .catch(() => {
+                if (!ignore) setError("Unable to load employees. Please try again later.");
+            })
+            .finally(() => { if (!ignore) setLoading(false); });
+        return () => { ignore = true; };
     }, []);
-console.log("Employees data:", employeesData);
+    const formatLabel = (value) => value
+        ? value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase())
+        : "Not specified";
+    const directoryEmployees = employeesData.map((employee) => ({
+        id: employee.id,
+        name: [employee.first_name, employee.middle_name, employee.last_name].filter(Boolean).join(" ") || employee.employee_number,
+        role: employee.position?.name ?? "Unassigned",
+        department: employee.department?.name ?? "Unassigned",
+        email: employee.email ?? "Not provided",
+        employment: ({ full_time: "Full-time", part_time: "Part-time", contract: "Contract" })[employee.employee_type] ?? formatLabel(employee.employee_type),
+        status: formatLabel(employee.employment_status),
+        initials: [employee.first_name, employee.last_name].map((part) => part?.[0] ?? "").join("").toUpperCase(),
+        color: "bg-[#e8d8ec] text-[#79558a]",
+    }));
+    const departmentCount = new Set(employeesData.map((employee) => employee.department?.id).filter((id) => id != null)).size;
+    const activeCount = employeesData.filter((employee) => employee.employment_status === "active").length;
+    const count = (value) => loading || error ? "?" : value;
     return (
         <>
             <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
                 <div>
-                    <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-[#9b82a4] uppercase">People directory</p>
-                    <h1 className="text-3xl font-medium tracking-[-0.04em] text-[#28242f] sm:text-4xl">Employee management</h1>
-                    <p className="mt-2 text-sm text-[#837a85]">Keep your team&apos;s information organized and up to date.</p>
+                    <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-[#9b82a4] uppercase">
+                        People directory
+                    </p>
+                    <h1 className="text-3xl font-medium tracking-[-0.04em] text-[#28242f] sm:text-4xl">
+                        Employee management
+                    </h1>
+                    <p className="mt-2 text-sm text-[#837a85]">
+                        Keep your team&apos;s information organized and up to
+                        date.
+                    </p>
                 </div>
-                <button className="flex h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c]"><Icon name="plus" className="size-4" /> Add employee</button>
+                <button className="flex h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c]">
+                    <Icon name="plus" className="size-4" /> Add employee
+                </button>
             </div>
             <div className="mb-6 grid gap-4 sm:grid-cols-3">
-                {[['124', 'Total employees'], ['12', 'Departments'], ['118', 'Active employees']].map(([value, label]) => (
-                    <div key={label} className="rounded-2xl border border-[#e9e2e9] bg-white p-5 shadow-[0_5px_20px_rgba(65,43,72,0.025)]">
-                        <p className="text-3xl font-medium tracking-[-0.05em] text-[#302a35]">{value}</p>
-                        <p className="mt-1 text-xs font-medium text-[#625768]">{label}</p>
+                {[
+                    [count(employeesData.length), "Total employees"],
+                    [count(departmentCount), "Departments"],
+                    [count(activeCount), "Active employees"],
+                ].map(([value, label]) => (
+                    <div
+                        key={label}
+                        className="rounded-2xl border border-[#e9e2e9] bg-white p-5 shadow-[0_5px_20px_rgba(65,43,72,0.025)]"
+                    >
+                        <p className="text-3xl font-medium tracking-[-0.05em] text-[#302a35]">
+                            {value}
+                        </p>
+                        <p className="mt-1 text-xs font-medium text-[#625768]">
+                            {label}
+                        </p>
                     </div>
                 ))}
             </div>
             <section className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div><h2 className="text-base font-semibold text-[#352e39]">All employees</h2><p className="mt-1 text-xs text-[#9a909c]">A complete view of everyone in your organization</p></div>
+                    <div>
+                        <h2 className="text-base font-semibold text-[#352e39]">
+                            All employees
+                        </h2>
+                        <p className="mt-1 text-xs text-[#9a909c]">
+                            A complete view of everyone in your organization
+                        </p>
+                    </div>
                     <div className="flex w-full gap-2 sm:w-auto">
-                        <div className="relative flex-1 sm:w-56"><Icon name="search" className="absolute top-2.5 left-3 size-4 text-[#a69ba8]" /><input placeholder="Search employees" className="h-9 w-full rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] pl-9 text-xs outline-none placeholder:text-[#b0a6b1] focus:border-[#a786b5]" /></div>
-                        <button className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b]">Filter</button>
+                        <div className="relative flex-1 sm:w-56">
+                            <Icon
+                                name="search"
+                                className="absolute top-2.5 left-3 size-4 text-[#a69ba8]"
+                            />
+                            <input
+                                placeholder="Search employees"
+                                className="h-9 w-full rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] pl-9 text-xs outline-none placeholder:text-[#b0a6b1] focus:border-[#a786b5]"
+                            />
+                        </div>
+                        <button className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b]">
+                            Filter
+                        </button>
                     </div>
                 </div>
                 <div className="mt-5 overflow-x-auto">
                     <table className="w-full min-w-[800px] text-left">
-                        <thead className="border-b border-[#eee9ee] text-[10px] font-semibold tracking-[0.13em] text-[#aaa0ad] uppercase"><tr><th className="pb-3 font-semibold">Employee</th><th className="pb-3 font-semibold">Department</th><th className="pb-3 font-semibold">Email</th><th className="pb-3 font-semibold">Employment</th><th className="pb-3 font-semibold">Status</th><th className="pb-3 font-semibold"> </th></tr></thead>
-                        <tbody className="divide-y divide-[#f1edf1]">{directoryEmployees.map(([name, role, department, email, employment, status, initials, color]) => <tr key={name} className="text-xs text-[#625968]">
-                            <td className="py-4"><div className="flex items-center gap-3"><span className={`grid size-9 place-items-center rounded-full text-[10px] font-semibold ${color}`}>{initials}</span><div><p className="font-semibold text-[#3c3440]">{name}</p><p className="mt-0.5 text-[11px] text-[#9a909c]">{role}</p></div></div></td>
-                            <td className="py-4">{department}</td><td className="py-4 text-[#918793]">{email}</td><td className="py-4">{employment}</td>
-                            <td className="py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${status === 'Active' ? 'bg-[#e6f1ea] text-[#56806a]' : status === 'On leave' ? 'bg-[#f8eddb] text-[#a57c51]' : 'bg-[#eee9eb] text-[#82777f]'}`}>{status}</span></td><td className="py-4 text-right text-[#9a909c]">•••</td>
-                        </tr>)}</tbody>
+                        <thead className="border-b border-[#eee9ee] text-[10px] font-semibold tracking-[0.13em] text-[#aaa0ad] uppercase">
+                            <tr>
+                                <th className="pb-3 font-semibold">Employee</th>
+                                <th className="pb-3 font-semibold">
+                                    Department
+                                </th>
+                                <th className="pb-3 font-semibold">Email</th>
+                                <th className="pb-3 font-semibold">
+                                    Employment
+                                </th>
+                                <th className="pb-3 font-semibold">Status</th>
+                                <th className="pb-3 font-semibold"> </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#f1edf1]">
+                            {(loading || error || directoryEmployees.length === 0) && (
+                                <tr>
+                                    <td colSpan={6} className="py-6 text-center text-sm text-[#918793]">
+                                        <span role={error ? "alert" : "status"}>
+                                            {loading ? "Loading employees?" : error || "No employees found."}
+                                        </span>
+                                    </td>
+                                </tr>
+                            )}
+                            {directoryEmployees.map(
+                                ({
+                                    id,
+                                    name,
+                                    role,
+                                    department,
+                                    email,
+                                    employment,
+                                    status,
+                                    initials,
+                                    color,
+                                }) => (
+                                    <tr
+                                        key={id}
+                                        className="text-xs text-[#625968]"
+                                    >
+                                        <td className="py-4">
+                                            <div className="flex items-center gap-3">
+                                                <span
+                                                    className={`grid size-9 place-items-center rounded-full text-[10px] font-semibold ${color}`}
+                                                >
+                                                    {initials}
+                                                </span>
+                                                <div>
+                                                    <p className="font-semibold text-[#3c3440]">
+                                                        {name}
+                                                    </p>
+                                                    <p className="mt-0.5 text-[11px] text-[#9a909c]">
+                                                        {role}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="py-4">{department}</td>
+                                        <td className="py-4 text-[#918793]">
+                                            {email}
+                                        </td>
+                                        <td className="py-4">{employment}</td>
+                                        <td className="py-4">
+                                            <span
+                                                className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${status === "Active" ? "bg-[#e6f1ea] text-[#56806a]" : status === "On leave" ? "bg-[#f8eddb] text-[#a57c51]" : "bg-[#eee9eb] text-[#82777f]"}`}
+                                            >
+                                                {status}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 text-right text-[#9a909c]">
+                                            •••
+                                        </td>
+                                    </tr>
+                                ),
+                            )}
+                        </tbody>
                     </table>
                 </div>
-                <div className="mt-5 flex items-center justify-between border-t border-[#f1edf1] pt-4 text-[11px] text-[#9a909c]"><span>Showing 6 of 124 employees</span><div className="flex gap-2"><button className="rounded-lg border border-[#e3dbe5] px-3 py-1.5">Previous</button><button className="rounded-lg border border-[#e3dbe5] px-3 py-1.5 text-[#675b6b]">Next</button></div></div>
+                <div className="mt-5 flex items-center justify-between border-t border-[#f1edf1] pt-4 text-[11px] text-[#9a909c]">
+                    <span>{loading ? "Loading employees?" : error ? "Employees unavailable" : `Showing ${directoryEmployees.length} employees`}</span>
+                </div>
             </section>
         </>
     );
@@ -398,11 +523,41 @@ function PlaceholderContent({ title, description, icon }) {
 
 function TaskListContent() {
     const taskItems = [
-        ["Review onboarding documents", "People team", "Today", "High", "In progress"],
-        ["Schedule quarterly check-ins", "Samantha Collins", "Tomorrow", "Medium", "To do"],
-        ["Update benefits information", "HR Operations", "Sep 20", "Low", "To do"],
-        ["Prepare monthly payroll report", "Finance team", "Sep 22", "High", "Completed"],
-        ["Send employee satisfaction survey", "Alex Johnson", "Sep 24", "Medium", "In progress"],
+        [
+            "Review onboarding documents",
+            "People team",
+            "Today",
+            "High",
+            "In progress",
+        ],
+        [
+            "Schedule quarterly check-ins",
+            "Samantha Collins",
+            "Tomorrow",
+            "Medium",
+            "To do",
+        ],
+        [
+            "Update benefits information",
+            "HR Operations",
+            "Sep 20",
+            "Low",
+            "To do",
+        ],
+        [
+            "Prepare monthly payroll report",
+            "Finance team",
+            "Sep 22",
+            "High",
+            "Completed",
+        ],
+        [
+            "Send employee satisfaction survey",
+            "Alex Johnson",
+            "Sep 24",
+            "Medium",
+            "In progress",
+        ],
     ];
 
     const statusStyles = {
@@ -421,9 +576,15 @@ function TaskListContent() {
         <>
             <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
                 <div>
-                    <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-[#9b82a4] uppercase">Workspace tasks</p>
-                    <h1 className="text-3xl font-medium tracking-[-0.04em] text-[#28242f] sm:text-4xl">Task list</h1>
-                    <p className="mt-2 text-sm text-[#837a85]">Keep track of important work, owners, and deadlines.</p>
+                    <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-[#9b82a4] uppercase">
+                        Workspace tasks
+                    </p>
+                    <h1 className="text-3xl font-medium tracking-[-0.04em] text-[#28242f] sm:text-4xl">
+                        Task list
+                    </h1>
+                    <p className="mt-2 text-sm text-[#837a85]">
+                        Keep track of important work, owners, and deadlines.
+                    </p>
                 </div>
                 <button className="flex h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c]">
                     <Icon name="plus" className="size-4" /> Add task
@@ -431,10 +592,21 @@ function TaskListContent() {
             </div>
 
             <div className="mb-6 grid gap-4 sm:grid-cols-3">
-                {[["18", "Open tasks"], ["05", "Due this week"], ["12", "Completed"]].map(([value, label]) => (
-                    <div key={label} className="rounded-2xl border border-[#e9e2e9] bg-white p-5 shadow-[0_5px_20px_rgba(65,43,72,0.025)]">
-                        <p className="text-3xl font-medium tracking-[-0.05em] text-[#302a35]">{value}</p>
-                        <p className="mt-1 text-xs font-medium text-[#625768]">{label}</p>
+                {[
+                    ["18", "Open tasks"],
+                    ["05", "Due this week"],
+                    ["12", "Completed"],
+                ].map(([value, label]) => (
+                    <div
+                        key={label}
+                        className="rounded-2xl border border-[#e9e2e9] bg-white p-5 shadow-[0_5px_20px_rgba(65,43,72,0.025)]"
+                    >
+                        <p className="text-3xl font-medium tracking-[-0.05em] text-[#302a35]">
+                            {value}
+                        </p>
+                        <p className="mt-1 text-xs font-medium text-[#625768]">
+                            {label}
+                        </p>
                     </div>
                 ))}
             </div>
@@ -442,28 +614,78 @@ function TaskListContent() {
             <section className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-base font-semibold text-[#352e39]">All tasks</h2>
-                        <p className="mt-1 text-xs text-[#9a909c]">A clear view of your team&apos;s current work</p>
+                        <h2 className="text-base font-semibold text-[#352e39]">
+                            All tasks
+                        </h2>
+                        <p className="mt-1 text-xs text-[#9a909c]">
+                            A clear view of your team&apos;s current work
+                        </p>
                     </div>
                     <div className="flex gap-2">
-                        <button className="rounded-lg bg-[#eee5f1] px-3 py-2 text-xs font-semibold text-[#5b3c78]">All tasks</button>
-                        <button className="rounded-lg border border-[#e3dbe5] px-3 py-2 text-xs font-semibold text-[#675b6b]">My tasks</button>
+                        <button className="rounded-lg bg-[#eee5f1] px-3 py-2 text-xs font-semibold text-[#5b3c78]">
+                            All tasks
+                        </button>
+                        <button className="rounded-lg border border-[#e3dbe5] px-3 py-2 text-xs font-semibold text-[#675b6b]">
+                            My tasks
+                        </button>
                     </div>
                 </div>
                 <div className="mt-5 overflow-x-auto">
                     <table className="w-full min-w-[720px] text-left">
                         <thead className="border-b border-[#eee9ee] text-[10px] font-semibold tracking-[0.13em] text-[#aaa0ad] uppercase">
-                            <tr><th className="pb-3 font-semibold">Task</th><th className="pb-3 font-semibold">Owner</th><th className="pb-3 font-semibold">Due date</th><th className="pb-3 font-semibold">Priority</th><th className="pb-3 font-semibold">Status</th></tr>
+                            <tr>
+                                <th className="pb-3 font-semibold">Task</th>
+                                <th className="pb-3 font-semibold">Owner</th>
+                                <th className="pb-3 font-semibold">Due date</th>
+                                <th className="pb-3 font-semibold">Priority</th>
+                                <th className="pb-3 font-semibold">Status</th>
+                            </tr>
                         </thead>
                         <tbody className="divide-y divide-[#f1edf1]">
-                            {taskItems.map(([title, owner, due, priority, status]) => (
-                                <tr key={title} className="text-xs text-[#625968]">
-                                    <td className="py-4"><div className="flex items-center gap-3"><span className={`grid size-7 place-items-center rounded-full border ${status === "Completed" ? "border-[#b9d7c4] bg-[#e6f1ea] text-[#56806a]" : "border-[#d5c9d9] text-[#866896]"}`}><Icon name="check" className="size-3.5" /></span><span className={`font-semibold ${status === "Completed" ? "text-[#9a909c] line-through" : "text-[#3c3440]"}`}>{title}</span></div></td>
-                                    <td className="py-4">{owner}</td><td className="py-4 text-[#918793]">{due}</td>
-                                    <td className="py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${priorityStyles[priority]}`}>{priority}</span></td>
-                                    <td className="py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusStyles[status]}`}>{status}</span></td>
-                                </tr>
-                            ))}
+                            {taskItems.map(
+                                ([title, owner, due, priority, status]) => (
+                                    <tr
+                                        key={title}
+                                        className="text-xs text-[#625968]"
+                                    >
+                                        <td className="py-4">
+                                            <div className="flex items-center gap-3">
+                                                <span
+                                                    className={`grid size-7 place-items-center rounded-full border ${status === "Completed" ? "border-[#b9d7c4] bg-[#e6f1ea] text-[#56806a]" : "border-[#d5c9d9] text-[#866896]"}`}
+                                                >
+                                                    <Icon
+                                                        name="check"
+                                                        className="size-3.5"
+                                                    />
+                                                </span>
+                                                <span
+                                                    className={`font-semibold ${status === "Completed" ? "text-[#9a909c] line-through" : "text-[#3c3440]"}`}
+                                                >
+                                                    {title}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="py-4">{owner}</td>
+                                        <td className="py-4 text-[#918793]">
+                                            {due}
+                                        </td>
+                                        <td className="py-4">
+                                            <span
+                                                className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${priorityStyles[priority]}`}
+                                            >
+                                                {priority}
+                                            </span>
+                                        </td>
+                                        <td className="py-4">
+                                            <span
+                                                className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusStyles[status]}`}
+                                            >
+                                                {status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ),
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -586,7 +808,18 @@ export default function Landing() {
                                     Administrator
                                 </span>
                             </span>
-                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`ml-1 hidden size-4 text-[#988d9d] transition-transform duration-200 sm:block ${profileOpen ? "rotate-180" : ""}`}><path d="m4 6 4 4 4-4" /></svg>
+                            <svg
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.7"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                                className={`ml-1 hidden size-4 text-[#988d9d] transition-transform duration-200 sm:block ${profileOpen ? "rotate-180" : ""}`}
+                            >
+                                <path d="m4 6 4 4 4-4" />
+                            </svg>
                         </button>
                         {profileOpen && (
                             <div
