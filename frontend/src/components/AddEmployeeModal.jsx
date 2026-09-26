@@ -7,7 +7,7 @@ const fields = [
     { name: "middle_name", label: "Middle name", optional: true },
     { name: "last_name", label: "Last name", maxLength: 255 },
     { name: "email", label: "Email", type: "email", maxLength: 255 },
-    { name: "phone_number", label: "Phone number", type: "tel", pattern: "09[0-9]{9}", title: "Enter 11 digits starting with 09", placeholder: "09123456789" },
+    { name: "phone_number", label: "Phone number", type: "tel", pattern: "09[0-9]{9}", maxLength: 11, inputMode: "numeric", title: "Enter 11 digits starting with 09", placeholder: "09123456789" },
     { name: "gender", label: "Gender", options: [["male", "Male"], ["female", "Female"]] },
     { name: "date_of_birth", label: "Date of birth", type: "date", optional: true },
     { name: "address", label: "Address", maxLength: 500 },

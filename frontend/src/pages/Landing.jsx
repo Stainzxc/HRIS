@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AddEmployeeModal from "../components/AddEmployeeModal";
+import EditEmployeeModal from "../components/EditEmployeeModal";
 import { getEmployees } from "../services/employeeService";
 
 const navItems = [
@@ -317,6 +318,7 @@ function DashboardContent({ onAddEmployee }) {
 }
 
 function EmployeeContent({ onAddEmployee }) {
+    const [editingEmployee, setEditingEmployee] = useState(null);
     const [employeesData, setEmployeesData] = useState([]);
     const [filters, setFilters] = useState({ search: "", employment_status: "", employee_type: "" });
     const [appliedFilters, setAppliedFilters] = useState(filters);
@@ -523,8 +525,7 @@ function EmployeeContent({ onAddEmployee }) {
                                                 {status}
                                             </span>
                                         </td>
-                                        <td className="py-4 text-right text-[#9a909c]">
-                                            •••
+                                        <td className="py-4 text-right text-[#9a909c]"><button type="button" onClick={() => setEditingEmployee(employeesData.find((employee) => employee.id === id))} aria-label={`Edit ${name}`} className="rounded px-2 py-1 text-lg leading-none hover:bg-[#f4eff4] hover:text-[#5b3c78]">•••</button>
                                         </td>
                                     </tr>
                                 ),
@@ -541,6 +542,7 @@ function EmployeeContent({ onAddEmployee }) {
                     </div>}
                 </div>
             </section>
+            {editingEmployee && <EditEmployeeModal employee={editingEmployee} onClose={() => setEditingEmployee(null)} onUpdated={() => { setEditingEmployee(null); setPage(1); setAppliedFilters({ ...appliedFilters }); }} />}
         </>
     );
 }

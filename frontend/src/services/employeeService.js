@@ -8,6 +8,10 @@ export const createEmployee = (employee) => {
     return axiosConfig.post("/employees", employee);
 };
 
+export const updateEmployee = (id, employee) => {
+    return axiosConfig.put(`/employees/${id}`, employee);
+};
+
 export const getEmployeePositions = () => {
     return axiosConfig.get("/positions");
 };
