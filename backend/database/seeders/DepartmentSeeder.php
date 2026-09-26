@@ -12,19 +12,23 @@ class DepartmentSeeder extends Seeder
      */
     public function run(): void
     {
-        DepartmentModel::create([
-            'name' => 'Human Resources',
-            'description' => 'Handles employee relations, recruitment, and training.',
-        ]);
+        $departments = [
+            ['Human Resources', 'Handles employee relations, recruitment, and training.'],
+            ['Finance', 'Manages financial planning, budgeting, and accounting.'],
+            ['Information Technology', 'Responsible for technology infrastructure and support.'],
+            ['Operations', 'Improves daily processes and organizational efficiency.'],
+            ['Marketing', 'Manages brand, campaigns, and customer communications.'],
+            ['Sales', 'Builds customer relationships and drives revenue growth.'],
+            ['Legal', 'Provides legal guidance and manages compliance.'],
+            ['Customer Support', 'Helps customers resolve questions and issues.'],
+            ['Research and Development', 'Creates and improves products and services.'],
+            ['Procurement', 'Manages vendors, purchasing, and supplier relationships.'],
+            ['Quality Assurance', 'Maintains product and process quality standards.'],
+            ['Administration', 'Provides general administrative and office support.'],
+        ];
 
-        DepartmentModel::create([
-            'name' => 'Finance',
-            'description' => 'Manages financial planning, budgeting, and accounting.',
-        ]);
-
-        DepartmentModel::create([
-            'name' => 'Information Technology',
-            'description' => 'Responsible for technology infrastructure and support.',
-        ]);
+        foreach ($departments as [$name, $description]) {
+            DepartmentModel::create(compact('name', 'description'));
+        }
     }
 }

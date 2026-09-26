@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\PositionModel;
+use App\Models\DepartmentModel;
 
 class PositionSeeder extends Seeder
 {
@@ -13,22 +14,19 @@ class PositionSeeder extends Seeder
      */
     public function run(): void
     {
-        PositionModel::create([
-            'name' => 'Manager',
-            'description' => 'Responsible for overseeing and managing a team or department.',
-            'department_id' => 1
-        ]);
+        $positions = [
+            'Manager', 'Specialist', 'Coordinator', 'Analyst', 'Associate',
+            'Team Lead', 'Officer', 'Senior Manager', 'Assistant', 'Director',
+        ];
 
-        PositionModel::create([
-            'name' => 'Software Engineer',
-            'description' => 'Develops and maintains software applications.',
-            'department_id' => 2
-        ]);
-
-        PositionModel::create([
-            'name' => 'Accountant',
-            'description' => 'Manages financial records, prepares reports, and ensures compliance with regulations.',
-            'department_id' => 3
-        ]);
+        DepartmentModel::query()->each(function ($department) use ($positions) {
+            foreach ($positions as $position) {
+                PositionModel::create([
+                    'name' => $position,
+                    'description' => "{$position} in {$department->name}.",
+                    'department_id' => $department->id,
+                ]);
+            }
+        });
     }
 }

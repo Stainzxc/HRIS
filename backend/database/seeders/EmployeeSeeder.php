@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\EmployeeModel;
+use App\Models\PositionModel;
+use Faker\Factory as FakerFactory;
 
 class EmployeeSeeder extends Seeder
 {
@@ -13,49 +15,29 @@ class EmployeeSeeder extends Seeder
      */
     public function run(): void
     {
-        EmployeeModel::create([
-            'employee_number' => 'EMP001',
-            'first_name' => 'John',
-            'middle_name' => 'Example',
-            'last_name' => 'Doe',
-            'email' => 'john@example.com',
-            'phone_number' => '09123456789',
-            'gender' => 'Male',
-            'address' => 'Sample Address',
-            'position_id' => 1,
-            'employment_status' => 'active',
-            'employee_type' => 'full_time',
-            'salary' => 50000.00,
-        ]);
+        $faker = FakerFactory::create();
+        $positionIds = PositionModel::query()->pluck('id')->all();
 
-        EmployeeModel::create([
-            'employee_number' => 'EMP002',
-            'first_name' => 'Jane',
-            'middle_name' => 'Example',
-            'last_name' => 'Smith',
-            'email' => 'jane@example.com',
-            'phone_number' => '09987654321',
-            'gender' => 'Female',
-            'address' => 'Sample Address',
-            'position_id' => 2,
-            'employment_status' => 'inactive',
-            'employee_type' => 'contract',
-            'salary' => 50000.00,
-        ]);
+        foreach (range(1, 100) as $number) {
+            $firstName = $faker->firstName;
+            $lastName = $faker->lastName;
 
-        EmployeeModel::create([
-            'employee_number' => 'EMP003',
-            'first_name' => 'Alice',
-            'middle_name' => 'Example',
-            'last_name' => 'Johnson',
-            'email' => 'alice@example.com',
-            'phone_number' => '09876543210',
-            'gender' => 'Female',
-            'address' => 'Sample Address',
-            'position_id' => 3,
-            'employment_status' => 'terminated',
-            'employee_type' => 'part_time',
-            'salary' => 50000.00,
-        ]);
+            EmployeeModel::create([
+                'employee_number' => sprintf('EMP%03d', $number),
+                'first_name' => $firstName,
+                'middle_name' => $faker->optional()->firstName,
+                'last_name' => $lastName,
+                'email' => strtolower("{$firstName}.{$lastName}.{$number}@example.com"),
+                'phone_number' => '09' . $faker->numerify('#########'),
+                'gender' => $faker->randomElement(['male', 'female']),
+                'address' => $faker->address,
+                'position_id' => $faker->randomElement($positionIds),
+                'employment_status' => $faker->randomElement(['active', 'active', 'active', 'inactive', 'terminated']),
+                'employee_type' => $faker->randomElement(['full_time', 'full_time', 'part_time', 'contract']),
+                'date_of_birth' => $faker->dateTimeBetween('-60 years', '-20 years')->format('Y-m-d'),
+                'date_hired' => $faker->dateTimeBetween('-10 years', 'now')->format('Y-m-d'),
+                'salary' => $faker->randomFloat(2, 20000, 150000),
+            ]);
+        }
     }
 }
