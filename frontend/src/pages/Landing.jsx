@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AddEmployeeModal from "../components/AddEmployeeModal";
 import EditEmployeeModal from "../components/EditEmployeeModal";
 import { getEmployees } from "../services/employeeService";
+import EmployeeManagementPage from "./EmployeeManagement";
 
 const navItems = [
     { label: "Dashboard", icon: "dashboard" },
@@ -317,7 +318,7 @@ function DashboardContent({ onAddEmployee }) {
     );
 }
 
-function EmployeeContent({ onAddEmployee }) {
+function LegacyEmployeeContent({ onAddEmployee }) {
     const [editingEmployee, setEditingEmployee] = useState(null);
     const [employeesData, setEmployeesData] = useState([]);
     const [filters, setFilters] = useState({ search: "", employment_status: "", employee_type: "" });
@@ -754,7 +755,7 @@ export default function Landing() {
         active === "Dashboard" ? (
             <DashboardContent onAddEmployee={openAddEmployee} />
         ) : active === "Employee Management" ? (
-            <EmployeeContent key={employeeVersion} onAddEmployee={openAddEmployee} />
+            <EmployeeManagementPage key={employeeVersion} onAddEmployee={openAddEmployee} />
         ) : active === "Task List" ? (
             <TaskListContent />
         ) : (
