@@ -1,7 +1,7 @@
 import axiosConfig from "./axiosConfig";
 
-export const getEmployees = () => {
-    return axiosConfig.get("/employees");
+export const getEmployees = (filters = {}) => {
+    return axiosConfig.get("/employees", { params: filters });
 }
 
 export const createEmployee = (employee) => {

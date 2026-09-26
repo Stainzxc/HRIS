@@ -318,12 +318,16 @@ function DashboardContent({ onAddEmployee }) {
 
 function EmployeeContent({ onAddEmployee }) {
     const [employeesData, setEmployeesData] = useState([]);
+    const [filters, setFilters] = useState({ search: "", employment_status: "", employee_type: "" });
+    const [appliedFilters, setAppliedFilters] = useState(filters);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
     useEffect(() => {
         let ignore = false;
-        getEmployees()
+        setLoading(true);
+        setError("");
+        getEmployees(appliedFilters)
             .then((response) => {
                 if (!Array.isArray(response.data.data)) throw new Error("Invalid employee response");
                 if (!ignore) setEmployeesData(response.data.data);
@@ -333,7 +337,7 @@ function EmployeeContent({ onAddEmployee }) {
             })
             .finally(() => { if (!ignore) setLoading(false); });
         return () => { ignore = true; };
-    }, []);
+    }, [appliedFilters]);
     
     const formatLabel = (value) => value
         ? value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase())
@@ -351,7 +355,7 @@ function EmployeeContent({ onAddEmployee }) {
     }));
     const departmentCount = new Set(employeesData.map((employee) => employee.department?.id).filter((id) => id != null)).size;
     const activeCount = employeesData.filter((employee) => employee.employment_status === "active").length;
-    const count = (value) => loading || error ? "?" : value;
+    const count = (value) => error ? "?" : value;
     return (
         <>
             <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
@@ -390,7 +394,7 @@ function EmployeeContent({ onAddEmployee }) {
                     </div>
                 ))}
             </div>
-            <section className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
+            <section aria-busy={loading} className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h2 className="text-base font-semibold text-[#352e39]">
@@ -408,13 +412,31 @@ function EmployeeContent({ onAddEmployee }) {
                             />
                             <input
                                 placeholder="Search employees"
+                                value={filters.search}
+                                onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+                                aria-label="Search employees"
                                 className="h-9 w-full rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] pl-9 text-xs outline-none placeholder:text-[#b0a6b1] focus:border-[#a786b5]"
                             />
                         </div>
-                        <button className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b]">
-                            Filter
+                        <button type="button" onClick={() => setAppliedFilters(filters)} className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b]">
+                            Search
                         </button>
                     </div>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3 border-t border-[#f1edf1] pt-4">
+                    <select aria-label="Filter by employment status" value={filters.employment_status} onChange={(event) => setFilters((current) => ({ ...current, employment_status: event.target.value }))} className="h-9 rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] px-3 text-xs text-[#675b6b]">
+                        <option value="">All statuses</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="terminated">Terminated</option>
+                    </select>
+                    <select aria-label="Filter by employee type" value={filters.employee_type} onChange={(event) => setFilters((current) => ({ ...current, employee_type: event.target.value }))} className="h-9 rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] px-3 text-xs text-[#675b6b]">
+                        <option value="">All employee types</option>
+                        <option value="full_time">Full-time</option>
+                        <option value="part_time">Part-time</option>
+                        <option value="contract">Contract</option>
+                    </select>
+                    {(filters.search || filters.employment_status || filters.employee_type) && <button type="button" onClick={() => { const clearedFilters = { search: "", employment_status: "", employee_type: "" }; setFilters(clearedFilters); setAppliedFilters(clearedFilters); }} className="text-xs font-semibold text-[#76548b]">Clear filters</button>}
                 </div>
                 <div className="mt-5 overflow-x-auto">
                     <table className="w-full min-w-[800px] text-left">
@@ -437,7 +459,7 @@ function EmployeeContent({ onAddEmployee }) {
                                 <tr>
                                     <td colSpan={6} className="py-6 text-center text-sm text-[#918793]">
                                         <span role={error ? "alert" : "status"}>
-                                            {loading ? "Loading employees?" : error || "No employees found."}
+                                            {loading ? <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-[#d9cedc] border-t-[#5b3c78]" /> Loading employees...</span> : error || "No employees found."}
                                         </span>
                                     </td>
                                 </tr>
@@ -497,7 +519,7 @@ function EmployeeContent({ onAddEmployee }) {
                     </table>
                 </div>
                 <div className="mt-5 flex items-center justify-between border-t border-[#f1edf1] pt-4 text-[11px] text-[#9a909c]">
-                    <span>{loading ? "Loading employees?" : error ? "Employees unavailable" : `Showing ${directoryEmployees.length} employees`}</span>
+                    <span>{loading ? "Fetching employees..." : error ? "Employees unavailable" : `Showing ${directoryEmployees.length} employees`}</span>
                 </div>
             </section>
         </>
