@@ -320,6 +320,8 @@ function EmployeeContent({ onAddEmployee }) {
     const [employeesData, setEmployeesData] = useState([]);
     const [filters, setFilters] = useState({ search: "", employment_status: "", employee_type: "" });
     const [appliedFilters, setAppliedFilters] = useState(filters);
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ current: 1, last: 1, total: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -327,17 +329,29 @@ function EmployeeContent({ onAddEmployee }) {
         let ignore = false;
         setLoading(true);
         setError("");
-        getEmployees(appliedFilters)
+        getEmployees(appliedFilters, page)
             .then((response) => {
                 if (!Array.isArray(response.data.data)) throw new Error("Invalid employee response");
-                if (!ignore) setEmployeesData(response.data.data);
+                if (!ignore) {
+                    setEmployeesData(response.data.data);
+                    setPagination({
+                        current: response.data.meta?.current_page ?? page,
+                        last: response.data.meta?.last_page ?? 1,
+                        total: response.data.meta?.total ?? response.data.data.length,
+                    });
+                }
             })
             .catch(() => {
                 if (!ignore) setError("Unable to load employees. Please try again later.");
             })
             .finally(() => { if (!ignore) setLoading(false); });
         return () => { ignore = true; };
-    }, [appliedFilters]);
+    }, [appliedFilters, page]);
+
+    const applyFilters = () => {
+        setPage(1);
+        setAppliedFilters(filters);
+    };
     
     const formatLabel = (value) => value
         ? value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase())
@@ -377,7 +391,7 @@ function EmployeeContent({ onAddEmployee }) {
             </div>
             <div className="mb-6 grid gap-4 sm:grid-cols-3">
                 {[
-                    [count(employeesData.length), "Total employees"],
+                    [count(pagination.total), "Total employees"],
                     [count(departmentCount), "Departments"],
                     [count(activeCount), "Active employees"],
                 ].map(([value, label]) => (
@@ -418,7 +432,7 @@ function EmployeeContent({ onAddEmployee }) {
                                 className="h-9 w-full rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] pl-9 text-xs outline-none placeholder:text-[#b0a6b1] focus:border-[#a786b5]"
                             />
                         </div>
-                        <button type="button" onClick={() => setAppliedFilters(filters)} className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b]">
+                        <button type="button" onClick={applyFilters} className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b]">
                             Search
                         </button>
                     </div>
@@ -436,7 +450,7 @@ function EmployeeContent({ onAddEmployee }) {
                         <option value="part_time">Part-time</option>
                         <option value="contract">Contract</option>
                     </select>
-                    {(filters.search || filters.employment_status || filters.employee_type) && <button type="button" onClick={() => { const clearedFilters = { search: "", employment_status: "", employee_type: "" }; setFilters(clearedFilters); setAppliedFilters(clearedFilters); }} className="text-xs font-semibold text-[#76548b]">Clear filters</button>}
+                    {(filters.search || filters.employment_status || filters.employee_type) && <button type="button" onClick={() => { const clearedFilters = { search: "", employment_status: "", employee_type: "" }; setFilters(clearedFilters); setPage(1); setAppliedFilters(clearedFilters); }} className="text-xs font-semibold text-[#76548b]">Clear filters</button>}
                 </div>
                 <div className="mt-5 overflow-x-auto">
                     <table className="w-full min-w-[800px] text-left">
@@ -519,7 +533,12 @@ function EmployeeContent({ onAddEmployee }) {
                     </table>
                 </div>
                 <div className="mt-5 flex items-center justify-between border-t border-[#f1edf1] pt-4 text-[11px] text-[#9a909c]">
-                    <span>{loading ? "Fetching employees..." : error ? "Employees unavailable" : `Showing ${directoryEmployees.length} employees`}</span>
+                    <span>{loading ? "Fetching employees..." : error ? "Employees unavailable" : `Showing ${directoryEmployees.length} of ${pagination.total} employees`}</span>
+                    {!loading && !error && pagination.last > 1 && <div className="flex items-center gap-2">
+                        <button type="button" disabled={page === 1} onClick={() => setPage((currentPage) => currentPage - 1)} className="rounded-md border border-[#e3dbe5] px-2.5 py-1.5 font-semibold disabled:opacity-40">Previous</button>
+                        <span>Page {pagination.current} of {pagination.last}</span>
+                        <button type="button" disabled={page >= pagination.last} onClick={() => setPage((currentPage) => currentPage + 1)} className="rounded-md border border-[#e3dbe5] px-2.5 py-1.5 font-semibold disabled:opacity-40">Next</button>
+                    </div>}
                 </div>
             </section>
         </>
