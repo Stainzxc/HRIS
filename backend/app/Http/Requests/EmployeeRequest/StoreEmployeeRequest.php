@@ -29,7 +29,7 @@ class StoreEmployeeRequest extends FormRequest
             'middle_name' => ['nullable', 'string'],
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'regex:/^09[0-9]{9}$/'],
+            'phone_number' => ['required', 'string', 'max:11', 'regex:/^09[0-9]{9}$/'],
             'gender' => ['required', Rule::in(['male', 'female'])],
             'date_of_birth' => ['nullable', 'date'],
             'address' => ['required', 'string', 'max:500'],

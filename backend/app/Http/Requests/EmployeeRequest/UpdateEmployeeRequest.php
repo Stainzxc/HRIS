@@ -30,7 +30,7 @@ class UpdateEmployeeRequest extends FormRequest
             'middle_name' => ['nullable', 'string'],
             'last_name' => ['sometimes', 'string', 'max:255'],
             'email' => ['sometimes', 'string', 'max:255', Rule::unique('employees', 'email')->ignore($employeeId)],
-            'phone_number' => ['sometimes', 'regex:/^09[0-9]{9}$/'],
+            'phone_number' => ['sometimes', 'string', 'max:11', 'regex:/^09[0-9]{9}$/'],
             'gender' => ['sometimes', Rule::in(['male', 'female'])],
             'date_of_birth' => ['nullable', 'date'],
             'address' => ['sometimes', 'string', 'max:500'],
