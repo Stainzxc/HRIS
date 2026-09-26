@@ -39,7 +39,8 @@ class EmployeeController extends Controller
                 $query->where('employee_type', $request->string('employee_type')->toString())
             )
             ->latest()
-            ->get();
+            ->paginate(min((int) $request->input('per_page', 10), 100))
+            ->withQueryString();
 
         return EmployeeResource::collection($employee);
     }
