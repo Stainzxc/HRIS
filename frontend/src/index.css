@@ -14,6 +14,14 @@ body {
   margin: 0;
 }
 
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 #root {
   min-height: 100svh;
 }

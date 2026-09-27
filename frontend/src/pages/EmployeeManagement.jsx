@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import EditEmployeeModal from "../components/EditEmployeeModal";
-import { getEmployees } from "../services/employeeService";
+import DeleteEmployeeDialog from "../components/DeleteEmployeeDialog";
+import { deleteEmployee, getEmployees } from "../services/employeeService";
 
 function Icon({ name, className = "" }) {
     const paths = {
@@ -12,6 +13,8 @@ function Icon({ name, className = "" }) {
 
 export default function EmployeeContent({ onAddEmployee }) {
     const [editingEmployee, setEditingEmployee] = useState(null);
+    const [deletingEmployee, setDeletingEmployee] = useState(null);
+    const [openMenuId, setOpenMenuId] = useState(null);
     const [employeesData, setEmployeesData] = useState([]);
     const [filters, setFilters] = useState({ search: "", employment_status: "", employee_type: "" });
     const [appliedFilters, setAppliedFilters] = useState(filters);
@@ -46,6 +49,18 @@ export default function EmployeeContent({ onAddEmployee }) {
     const applyFilters = () => {
         setPage(1);
         setAppliedFilters(filters);
+    };
+
+    const removeEmployee = async (employee) => {
+        try {
+            await deleteEmployee(employee.id);
+            setDeletingEmployee(null);
+            setOpenMenuId(null);
+            setPage(1);
+            setAppliedFilters({ ...appliedFilters });
+        } catch {
+            setError("Unable to delete the employee. Please try again later.");
+        }
     };
     
     const formatLabel = (value) => value
@@ -218,7 +233,11 @@ export default function EmployeeContent({ onAddEmployee }) {
                                                 {status}
                                             </span>
                                         </td>
-                                        <td className="py-4 text-right text-[#9a909c]"><button type="button" onClick={() => setEditingEmployee(employeesData.find((employee) => employee.id === id))} aria-label={`Edit ${name}`} title="Edit employee" className="inline-flex items-center justify-center rounded px-2 py-2 hover:bg-[#f4eff4] hover:text-[#5b3c78]"><span aria-hidden="true" className="flex flex-col gap-0.5"><span className="size-1 rounded-full bg-current" /><span className="size-1 rounded-full bg-current" /><span className="size-1 rounded-full bg-current" /></span></button>
+                                        <td className="relative py-4 text-right text-[#9a909c]"><button type="button" onClick={() => setOpenMenuId(openMenuId === id ? null : id)} aria-label={`Actions for ${name}`} aria-expanded={openMenuId === id} title="Employee actions" className="inline-flex items-center justify-center rounded px-2 py-2 hover:bg-[#f4eff4] hover:text-[#5b3c78]"><span aria-hidden="true" className="flex flex-col gap-0.5"><span className="size-1 rounded-full bg-current" /><span className="size-1 rounded-full bg-current" /><span className="size-1 rounded-full bg-current" /></span></button>
+                                            {openMenuId === id && <div className="absolute top-10 right-2 z-10 w-28 rounded-lg border border-[#e8e0e8] bg-white p-1 text-left shadow-lg">
+                                                <button type="button" onClick={() => { setEditingEmployee(employeesData.find((employee) => employee.id === id)); setOpenMenuId(null); }} className="w-full rounded-md px-3 py-2 text-xs font-semibold text-[#675b6b] hover:bg-[#f4eff4]">Edit</button>
+                                                <button type="button" onClick={() => { setDeletingEmployee(employeesData.find((employee) => employee.id === id)); setOpenMenuId(null); }} className="w-full rounded-md px-3 py-2 text-xs font-semibold text-[#a05f61] hover:bg-[#fbefef]">Delete</button>
+                                            </div>}
                                         </td>
                                     </tr>
                                 ),
@@ -236,6 +255,7 @@ export default function EmployeeContent({ onAddEmployee }) {
                 </div>
             </section>
             {editingEmployee && <EditEmployeeModal employee={editingEmployee} onClose={() => setEditingEmployee(null)} onUpdated={() => { setEditingEmployee(null); setPage(1); setAppliedFilters({ ...appliedFilters }); }} />}
+            {deletingEmployee && <DeleteEmployeeDialog employee={deletingEmployee} onClose={() => setDeletingEmployee(null)} onConfirm={() => removeEmployee(deletingEmployee)} />}
         </>
     );
 }

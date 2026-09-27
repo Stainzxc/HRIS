@@ -12,6 +12,8 @@ export const updateEmployee = (id, employee) => {
     return axiosConfig.put(`/employees/${id}`, employee);
 };
 
+export const deleteEmployee = (id) => axiosConfig.delete(`/employees/${id}`);
+
 export const getEmployeePositions = () => {
     return axiosConfig.get("/positions");
 };
