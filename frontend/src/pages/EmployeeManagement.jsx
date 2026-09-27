@@ -11,6 +11,10 @@ function Icon({ name, className = "" }) {
     return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`size-5 shrink-0 ${className}`}>{paths[name]}</svg>;
 }
 
+function Skeleton({ className = "" }) {
+    return <span aria-hidden="true" className={`block animate-pulse rounded-md bg-[#eee9ee] ${className}`} />;
+}
+
 export default function EmployeeContent({ onAddEmployee }) {
     const [editingEmployee, setEditingEmployee] = useState(null);
     const [deletingEmployee, setDeletingEmployee] = useState(null);
@@ -109,9 +113,7 @@ export default function EmployeeContent({ onAddEmployee }) {
                         key={label}
                         className="rounded-2xl border border-[#e9e2e9] bg-white p-5 shadow-[0_5px_20px_rgba(65,43,72,0.025)]"
                     >
-                        <p className="text-3xl font-medium tracking-[-0.05em] text-[#302a35]">
-                            {value}
-                        </p>
+                        {loading ? <Skeleton className="h-9 w-16" /> : <p className="text-3xl font-medium tracking-[-0.05em] text-[#302a35]">{value}</p>}
                         <p className="mt-1 text-xs font-medium text-[#625768]">
                             {label}
                         </p>
@@ -179,11 +181,16 @@ export default function EmployeeContent({ onAddEmployee }) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#f1edf1]">
-                            {(loading || error || directoryEmployees.length === 0) && (
+                            {loading && Array.from({ length: 5 }, (_, index) => (
+                                <tr key={`skeleton-${index}`} aria-hidden="true">
+                                    {Array.from({ length: 6 }, (_, cellIndex) => <td key={cellIndex} className="py-4"><Skeleton className={cellIndex === 0 ? "h-9 w-40" : "h-4 w-24"} /></td>)}
+                                </tr>
+                            ))}
+                            {!loading && (error || directoryEmployees.length === 0) && (
                                 <tr>
                                     <td colSpan={6} className="py-6 text-center text-sm text-[#918793]">
                                         <span role={error ? "alert" : "status"}>
-                                            {loading ? <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-[#d9cedc] border-t-[#5b3c78]" /> Loading employees...</span> : error || "No employees found."}
+                                            {error || "No employees found."}
                                         </span>
                                     </td>
                                 </tr>

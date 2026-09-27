@@ -761,7 +761,7 @@ function TaskListContent() {
 }
 
 export default function Landing() {
-    const [active, setActive] = useState("Dashboard");
+    const [active, setActive] = useState(() => localStorage.getItem("hris-active-page") || "Dashboard");
     const [mobileOpen, setMobileOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     const [addEmployeeOpen, setAddEmployeeOpen] = useState(false);
@@ -811,6 +811,7 @@ export default function Landing() {
                                 key={item.label}
                                 onClick={() => {
                                     setActive(item.label);
+                                    localStorage.setItem("hris-active-page", item.label);
                                     setMobileOpen(false);
                                 }}
                                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-[13px] font-medium transition ${active === item.label ? "bg-[#eee5f1] text-[#5b3c78]" : "text-[#756b78] hover:bg-[#f4eff4] hover:text-[#5b3c78]"}`}
@@ -932,6 +933,7 @@ export default function Landing() {
                                 setAddEmployeeOpen(false);
                                 setEmployeeVersion((version) => version + 1);
                                 setActive("Employee Management");
+                                localStorage.setItem("hris-active-page", "Employee Management");
                                 setEmployeeNotice("Employee added successfully.");
                             }}
                         />
