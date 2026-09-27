@@ -4,6 +4,10 @@ export const getEmployees = (filters = {}, page = 1) => {
     return axiosConfig.get("/employees", { params: { ...filters, page, per_page: 10 } });
 }
 
+export const exportEmployees = (filters = {}) => {
+    return axiosConfig.get("/employees/export", { params: filters, responseType: "blob" });
+};
+
 export const createEmployee = (employee) => {
     return axiosConfig.post("/employees", employee);
 };

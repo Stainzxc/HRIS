@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import EditEmployeeModal from "../components/EditEmployeeModal";
 import DeleteEmployeeDialog from "../components/DeleteEmployeeDialog";
-import { deleteEmployee, getEmployees } from "../services/employeeService";
+import { deleteEmployee, exportEmployees as downloadEmployees, getEmployees } from "../services/employeeService";
 
 function Icon({ name, className = "" }) {
     const paths = {
@@ -53,6 +53,16 @@ export default function EmployeeContent({ onAddEmployee }) {
     const applyFilters = () => {
         setPage(1);
         setAppliedFilters(filters);
+    };
+
+    const exportEmployees = async () => {
+        const response = await downloadEmployees(appliedFilters);
+        const url = URL.createObjectURL(response.data);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "employees.csv";
+        link.click();
+        URL.revokeObjectURL(url);
     };
 
     const removeEmployee = async (employee) => {
@@ -146,6 +156,9 @@ export default function EmployeeContent({ onAddEmployee }) {
                         </div>
                         <button type="button" onClick={applyFilters} className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b]">
                             Search
+                        </button>
+                        <button type="button" disabled={loading || directoryEmployees.length === 0} onClick={exportEmployees} className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b] disabled:opacity-50">
+                            Export CSV
                         </button>
                     </div>
                 </div>
