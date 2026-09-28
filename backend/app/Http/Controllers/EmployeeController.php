@@ -7,6 +7,7 @@ use App\Http\Requests\EmployeeRequest\StoreEmployeeRequest;
 use App\Http\Requests\EmployeeRequest\UpdateEmployeeRequest;
 use App\Http\Resources\EmployeeResource;
 use App\Models\EmployeeModel;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeController extends Controller
 {
@@ -82,9 +83,21 @@ class EmployeeController extends Controller
 
     public function store(StoreEmployeeRequest $request)
     {
-        $validatedEmployee = $request->validated();
+        $employee = DB::transaction(function () use ($request) {
+            // Lock the existing employee rows while calculating the next number so
+            // simultaneous employee creations cannot receive the same number.
+            $employees = EmployeeModel::query()->lockForUpdate()->pluck('employee_number');
+            $lastNumber = $employees->reduce(function (int $highest, string $number) {
+                return preg_match('/^EMP(\d+)$/', $number, $matches)
+                    ? max($highest, (int) $matches[1])
+                    : $highest;
+            }, 0);
 
-        $employee = EmployeeModel::create($validatedEmployee);
+            return EmployeeModel::create([
+                ...$request->validated(),
+                'employee_number' => sprintf('EMP%03d', $lastNumber + 1),
+            ]);
+        });
 
         return new EmployeeResource($employee);
     }

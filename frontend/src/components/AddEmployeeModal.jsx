@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { createEmployee, getEmployeePositions } from "../services/employeeService";
 
 const fields = [
-    { name: "employee_number", label: "Employee number", maxLength: 255 },
     { name: "first_name", label: "First name", maxLength: 255 },
     { name: "middle_name", label: "Middle name", optional: true },
     { name: "last_name", label: "Last name", maxLength: 255 },
@@ -77,7 +76,7 @@ export default function AddEmployeeModal({ onClose, onCreated }) {
             onCancel={(event) => { event.preventDefault(); if (!saving) onClose(); }}
             className="fixed inset-0 m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-2xl border border-[#e9e2e9] bg-white p-6 text-[#352e39] shadow-xl backdrop:bg-black/40">
             <h2 id="add-employee-title" className="text-xl font-semibold">Add employee</h2>
-            <p className="mt-2 text-sm text-[#837a85]">Department is determined by the selected position. Fields marked * are required.</p>
+            <p className="mt-2 text-sm text-[#837a85]">Employee number is generated automatically. Department is determined by the selected position. Fields marked * are required.</p>
             <form onSubmit={handleSubmit} className="mt-5">
                 {error && <p role="alert" className="mb-4 text-sm text-red-700">{error}</p>}
                 {positionError && <p role="alert" className="mb-4 text-sm text-red-700">{positionError}</p>}
