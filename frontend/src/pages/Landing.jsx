@@ -6,6 +6,7 @@ import DeleteEmployeeDialog from "../components/DeleteEmployeeDialog";
 import { deleteEmployee, getEmployees } from "../services/employeeService";
 import EmployeeManagementPage from "./EmployeeManagement";
 import MyAccount from "./MyAccount";
+import AccountSettings from "./AccountSettings";
 import { logout } from "../services/authService";
 import { ArrowRight, Bell, CheckCircle, LayoutDashboard, Menu, Plus, Search, Users } from "lucide-react";
 
@@ -743,6 +744,8 @@ export default function Landing() {
             <TaskListContent />
         ) : active === "My Account" ? (
             <MyAccount />
+        ) : active === "Account Settings" ? (
+            <AccountSettings />
         ) : (
             <PlaceholderContent
                 title="Task List"
@@ -874,6 +877,7 @@ export default function Landing() {
                                 </button>
                                 <button
                                     role="menuitem"
+                                    onClick={() => { setActive("Account Settings"); setProfileOpen(false); localStorage.setItem("hris-active-page", "Account Settings"); }}
                                     className="w-full rounded-lg px-3 py-2.5 text-left text-xs text-[#675b6b] hover:bg-[#f7f3f7]"
                                 >
                                     Account settings
