@@ -4,6 +4,7 @@ import EditEmployeeModal from "../components/EditEmployeeModal";
 import DeleteEmployeeDialog from "../components/DeleteEmployeeDialog";
 import { deleteEmployee, getEmployees } from "../services/employeeService";
 import EmployeeManagementPage from "./EmployeeManagement";
+import MyAccount from "./MyAccount";
 
 const navItems = [
     { label: "Dashboard", icon: "dashboard" },
@@ -778,6 +779,8 @@ export default function Landing() {
             <EmployeeManagementPage key={employeeVersion} onAddEmployee={openAddEmployee} />
         ) : active === "Task List" ? (
             <TaskListContent />
+        ) : active === "My Account" ? (
+            <MyAccount />
         ) : (
             <PlaceholderContent
                 title="Task List"
@@ -902,6 +905,7 @@ export default function Landing() {
                             >
                                 <button
                                     role="menuitem"
+                                    onClick={() => { setActive("My Account"); setProfileOpen(false); localStorage.setItem("hris-active-page", "My Account"); }}
                                     className="w-full rounded-lg px-3 py-2.5 text-left text-xs text-[#675b6b] hover:bg-[#f7f3f7]"
                                 >
                                     My profile
