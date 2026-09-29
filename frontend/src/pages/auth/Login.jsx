@@ -16,9 +16,15 @@ function Login() {
         setIsSubmitting(true);
         try {
             const response = await login({ email, password });
-            localStorage.setItem("hris-access-token", response.data.access_token);
-            localStorage.setItem("hris-user", JSON.stringify(response.data.user));
-            navigate("/")
+            localStorage.setItem(
+                "hris-access-token",
+                response.data.access_token,
+            );
+            localStorage.setItem(
+                "hris-user",
+                JSON.stringify(response.data.user),
+            );
+            navigate("/");
         } catch (error) {
             const message = error.response?.data?.message;
             setError(

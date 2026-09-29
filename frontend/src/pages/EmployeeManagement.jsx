@@ -1,16 +1,31 @@
 import { useEffect, useState } from "react";
 import EditEmployeeModal from "../components/EditEmployeeModal";
 import DeleteEmployeeDialog from "../components/DeleteEmployeeDialog";
-import { deleteEmployee, exportEmployees as downloadEmployees, getEmployees } from "../services/employeeService";
+import {
+    deleteEmployee,
+    exportEmployees as downloadEmployees,
+    getEmployees,
+} from "../services/employeeService";
 import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 function Icon({ name, className = "" }) {
     const icons = { plus: Plus, search: Search, edit: Pencil, trash: Trash2 };
     const LucideIcon = icons[name] || Plus;
-    return <LucideIcon aria-hidden="true" className={`size-5 shrink-0 ${className}`} strokeWidth={1.7} />;
+    return (
+        <LucideIcon
+            aria-hidden="true"
+            className={`size-5 shrink-0 ${className}`}
+            strokeWidth={1.7}
+        />
+    );
 }
 
 function Skeleton({ className = "" }) {
-    return <span aria-hidden="true" className={`block animate-pulse rounded-md bg-[#eee9ee] ${className}`} />;
+    return (
+        <span
+            aria-hidden="true"
+            className={`block animate-pulse rounded-md bg-[#eee9ee] ${className}`}
+        />
+    );
 }
 
 export default function EmployeeContent({ onAddEmployee }) {
@@ -18,10 +33,18 @@ export default function EmployeeContent({ onAddEmployee }) {
     const [deletingEmployee, setDeletingEmployee] = useState(null);
     const [openMenuId, setOpenMenuId] = useState(null);
     const [employeesData, setEmployeesData] = useState([]);
-    const [filters, setFilters] = useState({ search: "", employment_status: "", employee_type: "" });
+    const [filters, setFilters] = useState({
+        search: "",
+        employment_status: "",
+        employee_type: "",
+    });
     const [appliedFilters, setAppliedFilters] = useState(filters);
     const [page, setPage] = useState(1);
-    const [pagination, setPagination] = useState({ current: 1, last: 1, total: 0 });
+    const [pagination, setPagination] = useState({
+        current: 1,
+        last: 1,
+        total: 0,
+    });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -31,21 +54,31 @@ export default function EmployeeContent({ onAddEmployee }) {
         setError("");
         getEmployees(appliedFilters, page)
             .then((response) => {
-                if (!Array.isArray(response.data.data)) throw new Error("Invalid employee response");
+                if (!Array.isArray(response.data.data))
+                    throw new Error("Invalid employee response");
                 if (!ignore) {
                     setEmployeesData(response.data.data);
                     setPagination({
                         current: response.data.meta?.current_page ?? page,
                         last: response.data.meta?.last_page ?? 1,
-                        total: response.data.meta?.total ?? response.data.data.length,
+                        total:
+                            response.data.meta?.total ??
+                            response.data.data.length,
                     });
                 }
             })
             .catch(() => {
-                if (!ignore) setError("Unable to load employees. Please try again later.");
+                if (!ignore)
+                    setError(
+                        "Unable to load employees. Please try again later.",
+                    );
             })
-            .finally(() => { if (!ignore) setLoading(false); });
-        return () => { ignore = true; };
+            .finally(() => {
+                if (!ignore) setLoading(false);
+            });
+        return () => {
+            ignore = true;
+        };
     }, [appliedFilters, page]);
 
     const applyFilters = () => {
@@ -74,24 +107,44 @@ export default function EmployeeContent({ onAddEmployee }) {
             setError("Unable to delete the employee. Please try again later.");
         }
     };
-    
-    const formatLabel = (value) => value
-        ? value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase())
-        : "Not specified";
+
+    const formatLabel = (value) =>
+        value
+            ? value
+                  .replaceAll("_", " ")
+                  .replace(/^./, (letter) => letter.toUpperCase())
+            : "Not specified";
     const directoryEmployees = employeesData.map((employee) => ({
         id: employee.id,
-        name: [employee.first_name, employee.middle_name, employee.last_name].filter(Boolean).join(" ") || employee.employee_number,
+        name:
+            [employee.first_name, employee.middle_name, employee.last_name]
+                .filter(Boolean)
+                .join(" ") || employee.employee_number,
         role: employee.position?.name ?? "Unassigned",
         department: employee.department?.name ?? "Unassigned",
         email: employee.email ?? "Not provided",
-        employment: ({ full_time: "Full-time", part_time: "Part-time", contract: "Contract" })[employee.employee_type] ?? formatLabel(employee.employee_type),
+        employment:
+            {
+                full_time: "Full-time",
+                part_time: "Part-time",
+                contract: "Contract",
+            }[employee.employee_type] ?? formatLabel(employee.employee_type),
         status: formatLabel(employee.employment_status),
-        initials: [employee.first_name, employee.last_name].map((part) => part?.[0] ?? "").join("").toUpperCase(),
+        initials: [employee.first_name, employee.last_name]
+            .map((part) => part?.[0] ?? "")
+            .join("")
+            .toUpperCase(),
         color: "bg-[#e8d8ec] text-[#79558a]",
     }));
-    const departmentCount = new Set(employeesData.map((employee) => employee.department?.id).filter((id) => id != null)).size;
-    const activeCount = employeesData.filter((employee) => employee.employment_status === "active").length;
-    const count = (value) => error ? "?" : value;
+    const departmentCount = new Set(
+        employeesData
+            .map((employee) => employee.department?.id)
+            .filter((id) => id != null),
+    ).size;
+    const activeCount = employeesData.filter(
+        (employee) => employee.employment_status === "active",
+    ).length;
+    const count = (value) => (error ? "?" : value);
     return (
         <>
             <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
@@ -107,7 +160,10 @@ export default function EmployeeContent({ onAddEmployee }) {
                         date.
                     </p>
                 </div>
-                <button onClick={onAddEmployee} className="flex h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c]">
+                <button
+                    onClick={onAddEmployee}
+                    className="flex h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c]"
+                >
                     <Icon name="plus" className="size-4" /> Add employee
                 </button>
             </div>
@@ -121,14 +177,23 @@ export default function EmployeeContent({ onAddEmployee }) {
                         key={label}
                         className="rounded-2xl border border-[#e9e2e9] bg-white p-5 shadow-[0_5px_20px_rgba(65,43,72,0.025)]"
                     >
-                        {loading ? <Skeleton className="h-9 w-16" /> : <p className="text-3xl font-medium tracking-[-0.05em] text-[#302a35]">{value}</p>}
+                        {loading ? (
+                            <Skeleton className="h-9 w-16" />
+                        ) : (
+                            <p className="text-3xl font-medium tracking-[-0.05em] text-[#302a35]">
+                                {value}
+                            </p>
+                        )}
                         <p className="mt-1 text-xs font-medium text-[#625768]">
                             {label}
                         </p>
                     </div>
                 ))}
             </div>
-            <section aria-busy={loading} className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
+            <section
+                aria-busy={loading}
+                className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6"
+            >
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h2 className="text-base font-semibold text-[#352e39]">
@@ -147,33 +212,88 @@ export default function EmployeeContent({ onAddEmployee }) {
                             <input
                                 placeholder="Search employees"
                                 value={filters.search}
-                                onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+                                onChange={(event) =>
+                                    setFilters((current) => ({
+                                        ...current,
+                                        search: event.target.value,
+                                    }))
+                                }
                                 aria-label="Search employees"
                                 className="h-9 w-full rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] pl-9 text-xs outline-none placeholder:text-[#b0a6b1] focus:border-[#a786b5]"
                             />
                         </div>
-                        <button type="button" onClick={applyFilters} className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b]">
+                        <button
+                            type="button"
+                            onClick={applyFilters}
+                            className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b]"
+                        >
                             Search
                         </button>
-                        <button type="button" disabled={loading || directoryEmployees.length === 0} onClick={exportEmployees} className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b] disabled:opacity-50">
+                        <button
+                            type="button"
+                            disabled={
+                                loading || directoryEmployees.length === 0
+                            }
+                            onClick={exportEmployees}
+                            className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b] disabled:opacity-50"
+                        >
                             Export CSV
                         </button>
                     </div>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-3 border-t border-[#f1edf1] pt-4">
-                    <select aria-label="Filter by employment status" value={filters.employment_status} onChange={(event) => setFilters((current) => ({ ...current, employment_status: event.target.value }))} className="h-9 rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] px-3 text-xs text-[#675b6b]">
+                    <select
+                        aria-label="Filter by employment status"
+                        value={filters.employment_status}
+                        onChange={(event) =>
+                            setFilters((current) => ({
+                                ...current,
+                                employment_status: event.target.value,
+                            }))
+                        }
+                        className="h-9 rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] px-3 text-xs text-[#675b6b]"
+                    >
                         <option value="">All statuses</option>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                         <option value="terminated">Terminated</option>
                     </select>
-                    <select aria-label="Filter by employee type" value={filters.employee_type} onChange={(event) => setFilters((current) => ({ ...current, employee_type: event.target.value }))} className="h-9 rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] px-3 text-xs text-[#675b6b]">
+                    <select
+                        aria-label="Filter by employee type"
+                        value={filters.employee_type}
+                        onChange={(event) =>
+                            setFilters((current) => ({
+                                ...current,
+                                employee_type: event.target.value,
+                            }))
+                        }
+                        className="h-9 rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] px-3 text-xs text-[#675b6b]"
+                    >
                         <option value="">All employee types</option>
                         <option value="full_time">Full-time</option>
                         <option value="part_time">Part-time</option>
                         <option value="contract">Contract</option>
                     </select>
-                    {(filters.search || filters.employment_status || filters.employee_type) && <button type="button" onClick={() => { const clearedFilters = { search: "", employment_status: "", employee_type: "" }; setFilters(clearedFilters); setPage(1); setAppliedFilters(clearedFilters); }} className="text-xs font-semibold text-[#76548b]">Clear filters</button>}
+                    {(filters.search ||
+                        filters.employment_status ||
+                        filters.employee_type) && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const clearedFilters = {
+                                    search: "",
+                                    employment_status: "",
+                                    employee_type: "",
+                                };
+                                setFilters(clearedFilters);
+                                setPage(1);
+                                setAppliedFilters(clearedFilters);
+                            }}
+                            className="text-xs font-semibold text-[#76548b]"
+                        >
+                            Clear filters
+                        </button>
+                    )}
                 </div>
                 <div className="mt-5 overflow-x-auto">
                     <table className="w-full min-w-[800px] text-left">
@@ -192,20 +312,48 @@ export default function EmployeeContent({ onAddEmployee }) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#f1edf1]">
-                            {loading && Array.from({ length: 5 }, (_, index) => (
-                                <tr key={`skeleton-${index}`} aria-hidden="true">
-                                    {Array.from({ length: 6 }, (_, cellIndex) => <td key={cellIndex} className="py-4"><Skeleton className={cellIndex === 0 ? "h-9 w-40" : "h-4 w-24"} /></td>)}
-                                </tr>
-                            ))}
-                            {!loading && (error || directoryEmployees.length === 0) && (
-                                <tr>
-                                    <td colSpan={6} className="py-6 text-center text-sm text-[#918793]">
-                                        <span role={error ? "alert" : "status"}>
-                                            {error || "No employees found."}
-                                        </span>
-                                    </td>
-                                </tr>
-                            )}
+                            {loading &&
+                                Array.from({ length: 5 }, (_, index) => (
+                                    <tr
+                                        key={`skeleton-${index}`}
+                                        aria-hidden="true"
+                                    >
+                                        {Array.from(
+                                            { length: 6 },
+                                            (_, cellIndex) => (
+                                                <td
+                                                    key={cellIndex}
+                                                    className="py-4"
+                                                >
+                                                    <Skeleton
+                                                        className={
+                                                            cellIndex === 0
+                                                                ? "h-9 w-40"
+                                                                : "h-4 w-24"
+                                                        }
+                                                    />
+                                                </td>
+                                            ),
+                                        )}
+                                    </tr>
+                                ))}
+                            {!loading &&
+                                (error || directoryEmployees.length === 0) && (
+                                    <tr>
+                                        <td
+                                            colSpan={6}
+                                            className="py-6 text-center text-sm text-[#918793]"
+                                        >
+                                            <span
+                                                role={
+                                                    error ? "alert" : "status"
+                                                }
+                                            >
+                                                {error || "No employees found."}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                )}
                             {directoryEmployees.map(
                                 ({
                                     id,
@@ -251,11 +399,72 @@ export default function EmployeeContent({ onAddEmployee }) {
                                                 {status}
                                             </span>
                                         </td>
-                                        <td className="relative py-4 text-right text-[#9a909c]"><button type="button" onClick={() => setOpenMenuId(openMenuId === id ? null : id)} aria-label={`Actions for ${name}`} aria-expanded={openMenuId === id} title="Employee actions" className="inline-flex items-center justify-center rounded px-2 py-2 hover:bg-[#f4eff4] hover:text-[#5b3c78]"><span aria-hidden="true" className="flex flex-col gap-0.5"><span className="size-1 rounded-full bg-current" /><span className="size-1 rounded-full bg-current" /><span className="size-1 rounded-full bg-current" /></span></button>
-                                            {openMenuId === id && <div className="absolute top-10 right-2 z-10 w-28 rounded-lg border border-[#e8e0e8] bg-white p-1 text-left shadow-lg">
-                                                <button type="button" onClick={() => { setEditingEmployee(employeesData.find((employee) => employee.id === id)); setOpenMenuId(null); }} className="w-full rounded-md px-3 py-2 text-xs font-semibold text-[#675b6b] hover:bg-[#f4eff4]">Edit</button>
-                                                <button type="button" onClick={() => { setDeletingEmployee(employeesData.find((employee) => employee.id === id)); setOpenMenuId(null); }} className="w-full rounded-md px-3 py-2 text-xs font-semibold text-[#a05f61] hover:bg-[#fbefef]">Delete</button>
-                                            </div>}
+                                        <td className="relative py-4 text-right text-[#9a909c]">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setOpenMenuId(
+                                                        openMenuId === id
+                                                            ? null
+                                                            : id,
+                                                    )
+                                                }
+                                                aria-label={`Actions for ${name}`}
+                                                aria-expanded={
+                                                    openMenuId === id
+                                                }
+                                                title="Employee actions"
+                                                className="inline-flex items-center justify-center rounded px-2 py-2 hover:bg-[#f4eff4] hover:text-[#5b3c78]"
+                                            >
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="flex flex-col gap-0.5"
+                                                >
+                                                    <span className="size-1 rounded-full bg-current" />
+                                                    <span className="size-1 rounded-full bg-current" />
+                                                    <span className="size-1 rounded-full bg-current" />
+                                                </span>
+                                            </button>
+                                            {openMenuId === id && (
+                                                <div className="absolute top-10 right-2 z-10 w-28 rounded-lg border border-[#e8e0e8] bg-white p-1 text-left shadow-lg">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setEditingEmployee(
+                                                                employeesData.find(
+                                                                    (
+                                                                        employee,
+                                                                    ) =>
+                                                                        employee.id ===
+                                                                        id,
+                                                                ),
+                                                            );
+                                                            setOpenMenuId(null);
+                                                        }}
+                                                        className="w-full rounded-md px-3 py-2 text-xs font-semibold text-[#675b6b] hover:bg-[#f4eff4]"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setDeletingEmployee(
+                                                                employeesData.find(
+                                                                    (
+                                                                        employee,
+                                                                    ) =>
+                                                                        employee.id ===
+                                                                        id,
+                                                                ),
+                                                            );
+                                                            setOpenMenuId(null);
+                                                        }}
+                                                        className="w-full rounded-md px-3 py-2 text-xs font-semibold text-[#a05f61] hover:bg-[#fbefef]"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 ),
@@ -264,17 +473,60 @@ export default function EmployeeContent({ onAddEmployee }) {
                     </table>
                 </div>
                 <div className="mt-5 flex items-center justify-between border-t border-[#f1edf1] pt-4 text-[11px] text-[#9a909c]">
-                    <span>{loading ? "Fetching employees..." : error ? "Employees unavailable" : `Showing ${directoryEmployees.length} of ${pagination.total} employees`}</span>
-                    {!loading && !error && pagination.last > 1 && <div className="flex items-center gap-2">
-                        <button type="button" disabled={page === 1} onClick={() => setPage((currentPage) => currentPage - 1)} className="rounded-md border border-[#e3dbe5] px-2.5 py-1.5 font-semibold disabled:opacity-40">Previous</button>
-                        <span>Page {pagination.current} of {pagination.last}</span>
-                        <button type="button" disabled={page >= pagination.last} onClick={() => setPage((currentPage) => currentPage + 1)} className="rounded-md border border-[#e3dbe5] px-2.5 py-1.5 font-semibold disabled:opacity-40">Next</button>
-                    </div>}
+                    <span>
+                        {loading
+                            ? "Fetching employees..."
+                            : error
+                              ? "Employees unavailable"
+                              : `Showing ${directoryEmployees.length} of ${pagination.total} employees`}
+                    </span>
+                    {!loading && !error && pagination.last > 1 && (
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                disabled={page === 1}
+                                onClick={() =>
+                                    setPage((currentPage) => currentPage - 1)
+                                }
+                                className="rounded-md border border-[#e3dbe5] px-2.5 py-1.5 font-semibold disabled:opacity-40"
+                            >
+                                Previous
+                            </button>
+                            <span>
+                                Page {pagination.current} of {pagination.last}
+                            </span>
+                            <button
+                                type="button"
+                                disabled={page >= pagination.last}
+                                onClick={() =>
+                                    setPage((currentPage) => currentPage + 1)
+                                }
+                                className="rounded-md border border-[#e3dbe5] px-2.5 py-1.5 font-semibold disabled:opacity-40"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
                 </div>
             </section>
-            {editingEmployee && <EditEmployeeModal employee={editingEmployee} onClose={() => setEditingEmployee(null)} onUpdated={() => { setEditingEmployee(null); setPage(1); setAppliedFilters({ ...appliedFilters }); }} />}
-            {deletingEmployee && <DeleteEmployeeDialog employee={deletingEmployee} onClose={() => setDeletingEmployee(null)} onConfirm={() => removeEmployee(deletingEmployee)} />}
+            {editingEmployee && (
+                <EditEmployeeModal
+                    employee={editingEmployee}
+                    onClose={() => setEditingEmployee(null)}
+                    onUpdated={() => {
+                        setEditingEmployee(null);
+                        setPage(1);
+                        setAppliedFilters({ ...appliedFilters });
+                    }}
+                />
+            )}
+            {deletingEmployee && (
+                <DeleteEmployeeDialog
+                    employee={deletingEmployee}
+                    onClose={() => setDeletingEmployee(null)}
+                    onConfirm={() => removeEmployee(deletingEmployee)}
+                />
+            )}
         </>
     );
 }
-

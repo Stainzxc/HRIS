@@ -5,7 +5,7 @@ import {
     deleteDepartment,
     getDepartments,
     updateDepartment,
-} from "../services/employeeService";
+} from "../services/departmentService";
 
 const emptyForm = { name: "", description: "" };
 
