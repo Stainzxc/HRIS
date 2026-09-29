@@ -9,9 +9,10 @@ use App\Models\PositionModel;
 
 class PositionController extends Controller
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $position = PositionModel::all();
+        $perPage = min((int) $request->integer('per_page', 10), 100);
+        $position = PositionModel::with('department')->paginate($perPage);
 
         return PositionResource::collection($position);
     }

@@ -18,6 +18,10 @@ class PositionResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description
+            ,'department' => $this->department ? [
+                'id' => $this->department->id,
+                'name' => $this->department->name,
+            ] : null,
         ];
     }
 }

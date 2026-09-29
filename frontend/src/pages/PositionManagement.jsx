@@ -1,5 +1,13 @@
-import { useEffect, useState } from "react";
-import { BriefcaseBusiness, Pencil, Plus, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+    BriefcaseBusiness,
+    ChevronLeft,
+    ChevronRight,
+    Pencil,
+    Plus,
+    Trash2,
+    X,
+} from "lucide-react";
 import { getDepartments } from "../services/departmentService";
 import {
     createPosition,
@@ -13,40 +21,48 @@ const emptyForm = { name: "", description: "", department_id: "" };
 export default function PositionManagement() {
     const [positions, setPositions] = useState([]);
     const [departments, setDepartments] = useState([]);
+    const [pagination, setPagination] = useState({
+        current: 1,
+        last: 1,
+        total: 0,
+        from: 0,
+        to: 0,
+    });
     const [form, setForm] = useState(emptyForm);
     const [editing, setEditing] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
-    const load = () =>
-        Promise.all([getPositions(), getDepartments()])
+    const load = () => {
+        setLoading(true);
+        return Promise.all([getPositions(page), getDepartments()])
             .then(([positionResponse, departmentResponse]) => {
                 const departmentData =
                     departmentResponse.data.data ?? departmentResponse.data;
                 setDepartments(departmentData);
-                const departmentByPosition = new Map(
-                    departmentData.flatMap((department) =>
-                        (department.positions ?? []).map((position) => [
-                            position.id,
-                            department,
-                        ]),
-                    ),
-                );
-                setPositions(
-                    (positionResponse.data.data ?? positionResponse.data).map(
-                        (position) => ({
-                            ...position,
-                            department: departmentByPosition.get(position.id),
-                        }),
-                    ),
-                );
+                const positionData =
+                    positionResponse.data.data ?? positionResponse.data;
+                setPositions(positionData);
+                setPagination({
+                    current: positionResponse.data.meta?.current_page ?? page,
+                    last: positionResponse.data.meta?.last_page ?? 1,
+                    total:
+                        positionResponse.data.meta?.total ??
+                        positionData.length,
+                    from: positionResponse.data.meta?.from ?? 0,
+                    to: positionResponse.data.meta?.to ?? positionData.length,
+                });
             })
             .catch(() => setError("Unable to load positions."))
             .finally(() => setLoading(false));
+    };
     useEffect(() => {
         load();
-    }, []);
+    }, [page]);
+    const totalPages = Math.max(1, pagination.last);
+    const visiblePositions = positions;
     const submit = async (event) => {
         event.preventDefault();
         setSaving(true);
@@ -62,6 +78,7 @@ export default function PositionManagement() {
             setForm(emptyForm);
             setEditing(null);
             setModalOpen(false);
+            setPage(1);
             await load();
         } catch (requestError) {
             setError(
@@ -97,7 +114,8 @@ export default function PositionManagement() {
         if (!window.confirm(`Delete ${position.name}?`)) return;
         try {
             await deletePosition(position.id);
-            await load();
+            if (page > 1 && positions.length === 1) setPage(page - 1);
+            else await load();
         } catch {
             setError("Unable to delete position. It may still be in use.");
         }
@@ -134,19 +152,19 @@ export default function PositionManagement() {
                     {error}
                 </p>
             )}
-            <section className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
-                <div className="mb-5 flex items-center justify-between">
+            <section className="overflow-hidden rounded-2xl border border-[#e9e2e9] bg-white">
+                <div className="flex items-center justify-between p-5 sm:p-6">
                     <h2 className="text-lg font-semibold">All positions</h2>
                     <span className="text-xs text-[#837a85]">
                         {positions.length} total
                     </span>
                 </div>
                 {loading ? (
-                    <p className="text-sm text-[#837a85]">
+                    <p className="p-6 text-sm text-[#837a85]">
                         Loading positions...
                     </p>
                 ) : !positions.length ? (
-                    <div className="py-10 text-center">
+                    <div className="p-10 text-center">
                         <BriefcaseBusiness
                             className="mx-auto size-8 text-[#b4a5b8]"
                             strokeWidth={1.5}
@@ -156,46 +174,101 @@ export default function PositionManagement() {
                         </p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-[#eee8ee]">
-                        {positions.map((position) => (
-                            <div
-                                key={position.id}
-                                className="flex items-start justify-between gap-4 py-4 first:pt-0 last:pb-0"
-                            >
-                                <div>
-                                    <h3 className="font-semibold">
-                                        {position.name}
-                                    </h3>
-                                    <p className="mt-1 text-sm text-[#837a85]">
-                                        {position.description ||
-                                            "No description"}
-                                    </p>
-                                    <p className="mt-2 text-xs text-[#9b82a4]">
-                                        {position.department?.name ??
-                                            "Unassigned"}
-                                    </p>
-                                </div>
-                                <div className="flex gap-1">
-                                    <button
-                                        type="button"
-                                        onClick={() => beginEdit(position)}
-                                        className="rounded-lg p-2 text-[#76548b] hover:bg-[#f4eff4]"
-                                        aria-label={`Edit ${position.name}`}
-                                    >
-                                        <Pencil className="size-4" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => remove(position)}
-                                        className="rounded-lg p-2 text-[#a05f61] hover:bg-[#fbefef]"
-                                        aria-label={`Delete ${position.name}`}
-                                    >
-                                        <Trash2 className="size-4" />
-                                    </button>
-                                </div>
+                    <>
+                        <div className="overflow-x-auto">
+                            <table className="w-full min-w-[680px] text-left text-sm">
+                                <thead className="border-y border-[#eee8ee] bg-[#fcfbf9] text-xs text-[#837a85]">
+                                    <tr>
+                                        <th className="px-5 py-3 font-semibold">
+                                            Position
+                                        </th>
+                                        <th className="px-5 py-3 font-semibold">
+                                            Department
+                                        </th>
+                                        <th className="px-5 py-3 font-semibold">
+                                            Description
+                                        </th>
+                                        <th className="px-5 py-3 text-right font-semibold">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[#eee8ee]">
+                                    {visiblePositions.map((position) => (
+                                        <tr
+                                            key={position.id}
+                                            className="hover:bg-[#fdfbfc]"
+                                        >
+                                            <td className="px-5 py-4 font-semibold">
+                                                {position.name}
+                                            </td>
+                                            <td className="px-5 py-4 text-[#76548b]">
+                                                {position.department?.name ??
+                                                    "Unassigned"}
+                                            </td>
+                                            <td className="max-w-xs truncate px-5 py-4 text-[#837a85]">
+                                                {position.description ||
+                                                    "No description"}
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <div className="flex justify-end gap-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            beginEdit(position)
+                                                        }
+                                                        className="rounded-lg p-2 text-[#76548b] hover:bg-[#f4eff4]"
+                                                        aria-label={`Edit ${position.name}`}
+                                                    >
+                                                        <Pencil className="size-4" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            remove(position)
+                                                        }
+                                                        className="rounded-lg p-2 text-[#a05f61] hover:bg-[#fbefef]"
+                                                        aria-label={`Delete ${position.name}`}
+                                                    >
+                                                        <Trash2 className="size-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="flex items-center justify-between border-t border-[#eee8ee] px-5 py-4 text-xs text-[#837a85]">
+                            <span>
+                                Showing {pagination.from}-{pagination.to} of{" "}
+                                {pagination.total}
+                            </span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    disabled={page === 1}
+                                    onClick={() => setPage(page - 1)}
+                                    className="rounded-lg border border-[#d9cedc] p-2 disabled:opacity-40"
+                                    aria-label="Previous page"
+                                >
+                                    <ChevronLeft className="size-4" />
+                                </button>
+                                <span>
+                                    Page {page} of {totalPages}
+                                </span>
+                                <button
+                                    type="button"
+                                    disabled={page === totalPages}
+                                    onClick={() => setPage(page + 1)}
+                                    className="rounded-lg border border-[#d9cedc] p-2 disabled:opacity-40"
+                                    aria-label="Next page"
+                                >
+                                    <ChevronRight className="size-4" />
+                                </button>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    </>
                 )}
             </section>
             {modalOpen && (
