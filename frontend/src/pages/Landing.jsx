@@ -8,10 +8,12 @@ import EmployeeManagementPage from "./EmployeeManagement";
 import MyAccount from "./MyAccount";
 import AccountSettings from "./AccountSettings";
 import DepartmentManagement from "./DepartmentManagement";
+import PositionManagement from "./PositionManagement";
 import { logout } from "../services/authService";
 import {
     ArrowRight,
     Bell,
+    BriefcaseBusiness,
     CheckCircle,
     LayoutDashboard,
     Menu,
@@ -24,6 +26,7 @@ const navItems = [
     { label: "Dashboard", icon: "dashboard" },
     { label: "Employee Management", icon: "users" },
     { label: "Departments", icon: "briefcase" },
+    { label: "Positions", icon: "briefcase" },
     { label: "Task List", icon: "check" },
 ];
 
@@ -69,6 +72,7 @@ function Icon({ name, className = "" }) {
         dashboard: LayoutDashboard,
         users: Users,
         check: CheckCircle,
+        briefcase: BriefcaseBusiness,
         search: Search,
         bell: Bell,
         plus: Plus,
@@ -992,6 +996,8 @@ export default function Landing() {
             />
         ) : active === "Departments" ? (
             <DepartmentManagement />
+        ) : active === "Positions" ? (
+            <PositionManagement />
         ) : active === "Task List" ? (
             <TaskListContent />
         ) : active === "My Account" ? (
