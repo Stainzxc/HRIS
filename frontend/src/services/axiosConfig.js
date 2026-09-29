@@ -8,4 +8,10 @@ const axiosConfig = axios.create({
     },
 });
 
+axiosConfig.interceptors.request.use((config) => {
+    const token = localStorage.getItem("hris-access-token");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+});
+
 export default axiosConfig;

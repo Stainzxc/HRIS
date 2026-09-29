@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AddEmployeeModal from "../components/AddEmployeeModal";
 import EditEmployeeModal from "../components/EditEmployeeModal";
 import DeleteEmployeeDialog from "../components/DeleteEmployeeDialog";
 import { deleteEmployee, getEmployees } from "../services/employeeService";
 import EmployeeManagementPage from "./EmployeeManagement";
 import MyAccount from "./MyAccount";
+import { logout } from "../services/authService";
 
 const navItems = [
     { label: "Dashboard", icon: "dashboard" },
@@ -762,12 +764,23 @@ function TaskListContent() {
 }
 
 export default function Landing() {
+    const navigate = useNavigate();
     const [active, setActive] = useState(() => localStorage.getItem("hris-active-page") || "Dashboard");
     const [mobileOpen, setMobileOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     const [addEmployeeOpen, setAddEmployeeOpen] = useState(false);
     const [employeeVersion, setEmployeeVersion] = useState(0);
     const [employeeNotice, setEmployeeNotice] = useState("");
+    const [loggingOut, setLoggingOut] = useState(false);
+    const handleLogout = async () => {
+        if (loggingOut) return;
+        setLoggingOut(true);
+        try { await logout(); } catch { /* Clear local auth even if the server token is already invalid. */ }
+        localStorage.removeItem("hris-access-token");
+        localStorage.removeItem("hris-user");
+        localStorage.removeItem("hris-active-page");
+        navigate("/login");
+    };
     const openAddEmployee = () => {
         setEmployeeNotice("");
         setAddEmployeeOpen(true);
@@ -919,9 +932,12 @@ export default function Landing() {
                                 <div className="my-1 border-t border-[#f0ebf0]" />
                                 <button
                                     role="menuitem"
-                                    className="w-full rounded-lg px-3 py-2.5 text-left text-xs font-semibold text-[#a05f61] hover:bg-[#fbefef]"
+                                    onClick={handleLogout}
+                                    disabled={loggingOut}
+                                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-semibold text-[#a05f61] hover:bg-[#fbefef] disabled:cursor-wait disabled:opacity-60"
                                 >
-                                    Logout
+                                    {loggingOut && <span aria-hidden="true" className="size-3 animate-spin rounded-full border-2 border-[#d9a8a5] border-t-transparent" />}
+                                    {loggingOut ? "Logging out..." : "Logout"}
                                 </button>
                             </div>
                         )}

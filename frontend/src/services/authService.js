@@ -6,4 +6,8 @@ export const login = (credentials) => {
 
 export const signup = (userData) => {
     return axiosConfig.post("/signup", userData);
-}
+};
+
+export const getCurrentUser = () => axiosConfig.get("/user");
+
+export const logout = () => axiosConfig.post("/logout");
