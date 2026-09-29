@@ -2,13 +2,11 @@ import { useEffect, useState } from "react";
 import EditEmployeeModal from "../components/EditEmployeeModal";
 import DeleteEmployeeDialog from "../components/DeleteEmployeeDialog";
 import { deleteEmployee, exportEmployees as downloadEmployees, getEmployees } from "../services/employeeService";
-
+import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 function Icon({ name, className = "" }) {
-    const paths = {
-        plus: <><path d="M12 5v14M5 12h14" /></>,
-        search: <><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></>,
-    };
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`size-5 shrink-0 ${className}`}>{paths[name]}</svg>;
+    const icons = { plus: Plus, search: Search, edit: Pencil, trash: Trash2 };
+    const LucideIcon = icons[name] || Plus;
+    return <LucideIcon aria-hidden="true" className={`size-5 shrink-0 ${className}`} strokeWidth={1.7} />;
 }
 
 function Skeleton({ className = "" }) {

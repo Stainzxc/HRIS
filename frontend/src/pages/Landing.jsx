@@ -7,6 +7,7 @@ import { deleteEmployee, getEmployees } from "../services/employeeService";
 import EmployeeManagementPage from "./EmployeeManagement";
 import MyAccount from "./MyAccount";
 import { logout } from "../services/authService";
+import { ArrowRight, Bell, CheckCircle, LayoutDashboard, Menu, Plus, Search, Users } from "lucide-react";
 
 const navItems = [
     { label: "Dashboard", icon: "dashboard" },
@@ -52,64 +53,9 @@ const tasks = [
 ];
 
 function Icon({ name, className = "" }) {
-    const paths = {
-        dashboard: (
-            <>
-                <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                <rect x="14" y="14" width="7" height="7" rx="1.5" />
-            </>
-        ),
-        users: (
-            <>
-                <circle cx="9" cy="8" r="3" />
-                <path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m3 10v-3a6 6 0 0 0-2-4" />
-            </>
-        ),
-        check: (
-            <>
-                <path d="m5 12 4 4L19 6" />
-                <circle cx="12" cy="12" r="9" />
-            </>
-        ),
-        search: (
-            <>
-                <circle cx="11" cy="11" r="6.5" />
-                <path d="m16 16 4.5 4.5" />
-            </>
-        ),
-        bell: (
-            <>
-                <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
-            </>
-        ),
-        plus: (
-            <>
-                <path d="M12 5v14M5 12h14" />
-            </>
-        ),
-        arrow: <path d="M5 12h14m-6-6 6 6-6 6" />,
-        menu: (
-            <>
-                <path d="M4 7h16M4 12h16M4 17h16" />
-            </>
-        ),
-    };
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.7"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-            className={`size-5 shrink-0 ${className}`}
-        >
-            {paths[name]}
-        </svg>
-    );
+    const icons = { dashboard: LayoutDashboard, users: Users, check: CheckCircle, search: Search, bell: Bell, plus: Plus, arrow: ArrowRight, menu: Menu };
+    const LucideIcon = icons[name] || Plus;
+    return <LucideIcon aria-hidden="true" className={`size-5 shrink-0 ${className}`} strokeWidth={1.7} />;
 }
 
 function DashboardContent({ onAddEmployee, userName }) {
