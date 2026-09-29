@@ -112,7 +112,7 @@ function Icon({ name, className = "" }) {
     );
 }
 
-function DashboardContent({ onAddEmployee }) {
+function DashboardContent({ onAddEmployee, userName }) {
     const stats = [
         [
             "Total employees",
@@ -151,7 +151,7 @@ function DashboardContent({ onAddEmployee }) {
                         Tuesday, September 15, 2026
                     </p>
                     <h1 className="text-3xl font-medium tracking-[-0.04em] text-[#28242f] sm:text-4xl">
-                        Good morning, Alex.
+                        Good morning, {userName}.
                     </h1>
                     <p className="mt-2 text-sm text-[#837a85]">
                         Here&apos;s what&apos;s happening across your workspace
@@ -765,6 +765,9 @@ function TaskListContent() {
 
 export default function Landing() {
     const navigate = useNavigate();
+    const accountUser = JSON.parse(localStorage.getItem("hris-user") || "null");
+    const accountName = accountUser?.name || "User";
+    const accountInitials = accountName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
     const [active, setActive] = useState(() => localStorage.getItem("hris-active-page") || "Dashboard");
     const [mobileOpen, setMobileOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
@@ -787,7 +790,7 @@ export default function Landing() {
     };
     const content =
         active === "Dashboard" ? (
-            <DashboardContent onAddEmployee={openAddEmployee} />
+            <DashboardContent onAddEmployee={openAddEmployee} userName={accountName} />
         ) : active === "Employee Management" ? (
             <EmployeeManagementPage key={employeeVersion} onAddEmployee={openAddEmployee} />
         ) : active === "Task List" ? (
@@ -888,11 +891,11 @@ export default function Landing() {
                             className="group flex items-center gap-3 rounded-xl px-2 py-1.5 text-left transition hover:bg-[#f4eff4]"
                         >
                             <span className="grid size-9 place-items-center rounded-full bg-[#eadcf0] text-xs font-semibold text-[#79558a] ring-2 ring-white">
-                                AJ
+                                {accountInitials}
                             </span>
                             <span className="hidden text-left sm:block">
                                 <span className="block text-[13px] font-semibold leading-4 text-[#443a47]">
-                                    Alex Johnson
+                                    {accountName}
                                 </span>
                                 <span className="mt-0.5 block text-[11px] leading-4 text-[#9b909d]">
                                     Administrator

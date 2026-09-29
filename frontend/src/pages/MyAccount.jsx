@@ -1,8 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getCurrentUser } from "../services/authService";
 
 export default function MyAccount() {
     const [saved, setSaved] = useState(false);
-    const [profile, setProfile] = useState({ name: "Alex Johnson", email: "alex.johnson@example.com", role: "Administrator", phone: "", timezone: "Asia/Manila" });
+    const [profile, setProfile] = useState({ name: "", email: "", role: "Administrator", phone: "", timezone: "Asia/Manila" });
+    useEffect(() => {
+        const cachedUser = JSON.parse(localStorage.getItem("hris-user") || "null");
+        if (cachedUser) setProfile((current) => ({ ...current, name: cachedUser.name ?? "", email: cachedUser.email ?? "" }));
+        getCurrentUser().then(({ data }) => {
+            const user = data.user;
+            localStorage.setItem("hris-user", JSON.stringify(user));
+            setProfile((current) => ({ ...current, name: user.name ?? "", email: user.email ?? "" }));
+        }).catch(() => {});
+    }, []);
     const change = (event) => setProfile({ ...profile, [event.target.name]: event.target.value });
     const submit = (event) => { event.preventDefault(); setSaved(true); };
     return <>
