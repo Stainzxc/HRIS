@@ -7,12 +7,23 @@ import { deleteEmployee, getEmployees } from "../services/employeeService";
 import EmployeeManagementPage from "./EmployeeManagement";
 import MyAccount from "./MyAccount";
 import AccountSettings from "./AccountSettings";
+import DepartmentManagement from "./DepartmentManagement";
 import { logout } from "../services/authService";
-import { ArrowRight, Bell, CheckCircle, LayoutDashboard, Menu, Plus, Search, Users } from "lucide-react";
+import {
+    ArrowRight,
+    Bell,
+    CheckCircle,
+    LayoutDashboard,
+    Menu,
+    Plus,
+    Search,
+    Users,
+} from "lucide-react";
 
 const navItems = [
     { label: "Dashboard", icon: "dashboard" },
     { label: "Employee Management", icon: "users" },
+    { label: "Departments", icon: "briefcase" },
     { label: "Task List", icon: "check" },
 ];
 
@@ -54,9 +65,24 @@ const tasks = [
 ];
 
 function Icon({ name, className = "" }) {
-    const icons = { dashboard: LayoutDashboard, users: Users, check: CheckCircle, search: Search, bell: Bell, plus: Plus, arrow: ArrowRight, menu: Menu };
+    const icons = {
+        dashboard: LayoutDashboard,
+        users: Users,
+        check: CheckCircle,
+        search: Search,
+        bell: Bell,
+        plus: Plus,
+        arrow: ArrowRight,
+        menu: Menu,
+    };
     const LucideIcon = icons[name] || Plus;
-    return <LucideIcon aria-hidden="true" className={`size-5 shrink-0 ${className}`} strokeWidth={1.7} />;
+    return (
+        <LucideIcon
+            aria-hidden="true"
+            className={`size-5 shrink-0 ${className}`}
+            strokeWidth={1.7}
+        />
+    );
 }
 
 function DashboardContent({ onAddEmployee, userName }) {
@@ -105,7 +131,10 @@ function DashboardContent({ onAddEmployee, userName }) {
                         today.
                     </p>
                 </div>
-                <button onClick={onAddEmployee} className="hidden h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c] sm:flex">
+                <button
+                    onClick={onAddEmployee}
+                    className="hidden h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c] sm:flex"
+                >
                     <Icon name="plus" className="size-4" /> Add employee
                 </button>
             </div>
@@ -274,10 +303,18 @@ function LegacyEmployeeContent({ onAddEmployee }) {
     const [deletingEmployee, setDeletingEmployee] = useState(null);
     const [openMenuId, setOpenMenuId] = useState(null);
     const [employeesData, setEmployeesData] = useState([]);
-    const [filters, setFilters] = useState({ search: "", employment_status: "", employee_type: "" });
+    const [filters, setFilters] = useState({
+        search: "",
+        employment_status: "",
+        employee_type: "",
+    });
     const [appliedFilters, setAppliedFilters] = useState(filters);
     const [page, setPage] = useState(1);
-    const [pagination, setPagination] = useState({ current: 1, last: 1, total: 0 });
+    const [pagination, setPagination] = useState({
+        current: 1,
+        last: 1,
+        total: 0,
+    });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -287,21 +324,31 @@ function LegacyEmployeeContent({ onAddEmployee }) {
         setError("");
         getEmployees(appliedFilters, page)
             .then((response) => {
-                if (!Array.isArray(response.data.data)) throw new Error("Invalid employee response");
+                if (!Array.isArray(response.data.data))
+                    throw new Error("Invalid employee response");
                 if (!ignore) {
                     setEmployeesData(response.data.data);
                     setPagination({
                         current: response.data.meta?.current_page ?? page,
                         last: response.data.meta?.last_page ?? 1,
-                        total: response.data.meta?.total ?? response.data.data.length,
+                        total:
+                            response.data.meta?.total ??
+                            response.data.data.length,
                     });
                 }
             })
             .catch(() => {
-                if (!ignore) setError("Unable to load employees. Please try again later.");
+                if (!ignore)
+                    setError(
+                        "Unable to load employees. Please try again later.",
+                    );
             })
-            .finally(() => { if (!ignore) setLoading(false); });
-        return () => { ignore = true; };
+            .finally(() => {
+                if (!ignore) setLoading(false);
+            });
+        return () => {
+            ignore = true;
+        };
     }, [appliedFilters, page]);
 
     const applyFilters = () => {
@@ -320,24 +367,44 @@ function LegacyEmployeeContent({ onAddEmployee }) {
             setError("Unable to delete the employee. Please try again later.");
         }
     };
-    
-    const formatLabel = (value) => value
-        ? value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase())
-        : "Not specified";
+
+    const formatLabel = (value) =>
+        value
+            ? value
+                  .replaceAll("_", " ")
+                  .replace(/^./, (letter) => letter.toUpperCase())
+            : "Not specified";
     const directoryEmployees = employeesData.map((employee) => ({
         id: employee.id,
-        name: [employee.first_name, employee.middle_name, employee.last_name].filter(Boolean).join(" ") || employee.employee_number,
+        name:
+            [employee.first_name, employee.middle_name, employee.last_name]
+                .filter(Boolean)
+                .join(" ") || employee.employee_number,
         role: employee.position?.name ?? "Unassigned",
         department: employee.department?.name ?? "Unassigned",
         email: employee.email ?? "Not provided",
-        employment: ({ full_time: "Full-time", part_time: "Part-time", contract: "Contract" })[employee.employee_type] ?? formatLabel(employee.employee_type),
+        employment:
+            {
+                full_time: "Full-time",
+                part_time: "Part-time",
+                contract: "Contract",
+            }[employee.employee_type] ?? formatLabel(employee.employee_type),
         status: formatLabel(employee.employment_status),
-        initials: [employee.first_name, employee.last_name].map((part) => part?.[0] ?? "").join("").toUpperCase(),
+        initials: [employee.first_name, employee.last_name]
+            .map((part) => part?.[0] ?? "")
+            .join("")
+            .toUpperCase(),
         color: "bg-[#e8d8ec] text-[#79558a]",
     }));
-    const departmentCount = new Set(employeesData.map((employee) => employee.department?.id).filter((id) => id != null)).size;
-    const activeCount = employeesData.filter((employee) => employee.employment_status === "active").length;
-    const count = (value) => error ? "?" : value;
+    const departmentCount = new Set(
+        employeesData
+            .map((employee) => employee.department?.id)
+            .filter((id) => id != null),
+    ).size;
+    const activeCount = employeesData.filter(
+        (employee) => employee.employment_status === "active",
+    ).length;
+    const count = (value) => (error ? "?" : value);
     return (
         <>
             <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
@@ -353,7 +420,10 @@ function LegacyEmployeeContent({ onAddEmployee }) {
                         date.
                     </p>
                 </div>
-                <button onClick={onAddEmployee} className="flex h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c]">
+                <button
+                    onClick={onAddEmployee}
+                    className="flex h-11 items-center gap-2 rounded-xl bg-[#5b3c78] px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(91,60,120,0.16)] transition hover:bg-[#4f326c]"
+                >
                     <Icon name="plus" className="size-4" /> Add employee
                 </button>
             </div>
@@ -376,7 +446,10 @@ function LegacyEmployeeContent({ onAddEmployee }) {
                     </div>
                 ))}
             </div>
-            <section aria-busy={loading} className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
+            <section
+                aria-busy={loading}
+                className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6"
+            >
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h2 className="text-base font-semibold text-[#352e39]">
@@ -395,30 +468,78 @@ function LegacyEmployeeContent({ onAddEmployee }) {
                             <input
                                 placeholder="Search employees"
                                 value={filters.search}
-                                onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+                                onChange={(event) =>
+                                    setFilters((current) => ({
+                                        ...current,
+                                        search: event.target.value,
+                                    }))
+                                }
                                 aria-label="Search employees"
                                 className="h-9 w-full rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] pl-9 text-xs outline-none placeholder:text-[#b0a6b1] focus:border-[#a786b5]"
                             />
                         </div>
-                        <button type="button" onClick={applyFilters} className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b]">
+                        <button
+                            type="button"
+                            onClick={applyFilters}
+                            className="rounded-lg border border-[#e3dbe5] px-3 text-xs font-semibold text-[#675b6b]"
+                        >
                             Search
                         </button>
                     </div>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-3 border-t border-[#f1edf1] pt-4">
-                    <select aria-label="Filter by employment status" value={filters.employment_status} onChange={(event) => setFilters((current) => ({ ...current, employment_status: event.target.value }))} className="h-9 rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] px-3 text-xs text-[#675b6b]">
+                    <select
+                        aria-label="Filter by employment status"
+                        value={filters.employment_status}
+                        onChange={(event) =>
+                            setFilters((current) => ({
+                                ...current,
+                                employment_status: event.target.value,
+                            }))
+                        }
+                        className="h-9 rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] px-3 text-xs text-[#675b6b]"
+                    >
                         <option value="">All statuses</option>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                         <option value="terminated">Terminated</option>
                     </select>
-                    <select aria-label="Filter by employee type" value={filters.employee_type} onChange={(event) => setFilters((current) => ({ ...current, employee_type: event.target.value }))} className="h-9 rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] px-3 text-xs text-[#675b6b]">
+                    <select
+                        aria-label="Filter by employee type"
+                        value={filters.employee_type}
+                        onChange={(event) =>
+                            setFilters((current) => ({
+                                ...current,
+                                employee_type: event.target.value,
+                            }))
+                        }
+                        className="h-9 rounded-lg border border-[#e7e0e7] bg-[#fcfbf9] px-3 text-xs text-[#675b6b]"
+                    >
                         <option value="">All employee types</option>
                         <option value="full_time">Full-time</option>
                         <option value="part_time">Part-time</option>
                         <option value="contract">Contract</option>
                     </select>
-                    {(filters.search || filters.employment_status || filters.employee_type) && <button type="button" onClick={() => { const clearedFilters = { search: "", employment_status: "", employee_type: "" }; setFilters(clearedFilters); setPage(1); setAppliedFilters(clearedFilters); }} className="text-xs font-semibold text-[#76548b]">Clear filters</button>}
+                    {(filters.search ||
+                        filters.employment_status ||
+                        filters.employee_type) && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const clearedFilters = {
+                                    search: "",
+                                    employment_status: "",
+                                    employee_type: "",
+                                };
+                                setFilters(clearedFilters);
+                                setPage(1);
+                                setAppliedFilters(clearedFilters);
+                            }}
+                            className="text-xs font-semibold text-[#76548b]"
+                        >
+                            Clear filters
+                        </button>
+                    )}
                 </div>
                 <div className="mt-5 overflow-x-auto">
                     <table className="w-full min-w-[800px] text-left">
@@ -437,11 +558,26 @@ function LegacyEmployeeContent({ onAddEmployee }) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#f1edf1]">
-                            {(loading || error || directoryEmployees.length === 0) && (
+                            {(loading ||
+                                error ||
+                                directoryEmployees.length === 0) && (
                                 <tr>
-                                    <td colSpan={6} className="py-6 text-center text-sm text-[#918793]">
+                                    <td
+                                        colSpan={6}
+                                        className="py-6 text-center text-sm text-[#918793]"
+                                    >
                                         <span role={error ? "alert" : "status"}>
-                                            {loading ? <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-[#d9cedc] border-t-[#5b3c78]" /> Loading employees...</span> : error || "No employees found."}
+                                            {loading ? (
+                                                <span className="inline-flex items-center gap-2">
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className="size-4 animate-spin rounded-full border-2 border-[#d9cedc] border-t-[#5b3c78]"
+                                                    />{" "}
+                                                    Loading employees...
+                                                </span>
+                                            ) : (
+                                                error || "No employees found."
+                                            )}
                                         </span>
                                     </td>
                                 </tr>
@@ -491,11 +627,64 @@ function LegacyEmployeeContent({ onAddEmployee }) {
                                                 {status}
                                             </span>
                                         </td>
-                                        <td className="relative py-4 text-right text-[#9a909c]"><button type="button" onClick={() => setOpenMenuId(openMenuId === id ? null : id)} aria-label={`Actions for ${name}`} aria-expanded={openMenuId === id} className="rounded px-2 py-1 text-lg leading-none hover:bg-[#f4eff4] hover:text-[#5b3c78]">•••</button>
-                                            {openMenuId === id && <div className="absolute top-10 right-2 z-10 w-28 rounded-lg border border-[#e8e0e8] bg-white p-1 text-left shadow-lg">
-                                                <button type="button" onClick={() => { setEditingEmployee(employeesData.find((employee) => employee.id === id)); setOpenMenuId(null); }} className="w-full rounded-md px-3 py-2 text-xs font-semibold text-[#675b6b] hover:bg-[#f4eff4]">Edit</button>
-                                                <button type="button" onClick={() => { setDeletingEmployee(employeesData.find((employee) => employee.id === id)); setOpenMenuId(null); }} className="w-full rounded-md px-3 py-2 text-xs font-semibold text-[#a05f61] hover:bg-[#fbefef]">Delete</button>
-                                            </div>}
+                                        <td className="relative py-4 text-right text-[#9a909c]">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setOpenMenuId(
+                                                        openMenuId === id
+                                                            ? null
+                                                            : id,
+                                                    )
+                                                }
+                                                aria-label={`Actions for ${name}`}
+                                                aria-expanded={
+                                                    openMenuId === id
+                                                }
+                                                className="rounded px-2 py-1 text-lg leading-none hover:bg-[#f4eff4] hover:text-[#5b3c78]"
+                                            >
+                                                •••
+                                            </button>
+                                            {openMenuId === id && (
+                                                <div className="absolute top-10 right-2 z-10 w-28 rounded-lg border border-[#e8e0e8] bg-white p-1 text-left shadow-lg">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setEditingEmployee(
+                                                                employeesData.find(
+                                                                    (
+                                                                        employee,
+                                                                    ) =>
+                                                                        employee.id ===
+                                                                        id,
+                                                                ),
+                                                            );
+                                                            setOpenMenuId(null);
+                                                        }}
+                                                        className="w-full rounded-md px-3 py-2 text-xs font-semibold text-[#675b6b] hover:bg-[#f4eff4]"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setDeletingEmployee(
+                                                                employeesData.find(
+                                                                    (
+                                                                        employee,
+                                                                    ) =>
+                                                                        employee.id ===
+                                                                        id,
+                                                                ),
+                                                            );
+                                                            setOpenMenuId(null);
+                                                        }}
+                                                        className="w-full rounded-md px-3 py-2 text-xs font-semibold text-[#a05f61] hover:bg-[#fbefef]"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 ),
@@ -504,16 +693,60 @@ function LegacyEmployeeContent({ onAddEmployee }) {
                     </table>
                 </div>
                 <div className="mt-5 flex items-center justify-between border-t border-[#f1edf1] pt-4 text-[11px] text-[#9a909c]">
-                    <span>{loading ? "Fetching employees..." : error ? "Employees unavailable" : `Showing ${directoryEmployees.length} of ${pagination.total} employees`}</span>
-                    {!loading && !error && pagination.last > 1 && <div className="flex items-center gap-2">
-                        <button type="button" disabled={page === 1} onClick={() => setPage((currentPage) => currentPage - 1)} className="rounded-md border border-[#e3dbe5] px-2.5 py-1.5 font-semibold disabled:opacity-40">Previous</button>
-                        <span>Page {pagination.current} of {pagination.last}</span>
-                        <button type="button" disabled={page >= pagination.last} onClick={() => setPage((currentPage) => currentPage + 1)} className="rounded-md border border-[#e3dbe5] px-2.5 py-1.5 font-semibold disabled:opacity-40">Next</button>
-                    </div>}
+                    <span>
+                        {loading
+                            ? "Fetching employees..."
+                            : error
+                              ? "Employees unavailable"
+                              : `Showing ${directoryEmployees.length} of ${pagination.total} employees`}
+                    </span>
+                    {!loading && !error && pagination.last > 1 && (
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                disabled={page === 1}
+                                onClick={() =>
+                                    setPage((currentPage) => currentPage - 1)
+                                }
+                                className="rounded-md border border-[#e3dbe5] px-2.5 py-1.5 font-semibold disabled:opacity-40"
+                            >
+                                Previous
+                            </button>
+                            <span>
+                                Page {pagination.current} of {pagination.last}
+                            </span>
+                            <button
+                                type="button"
+                                disabled={page >= pagination.last}
+                                onClick={() =>
+                                    setPage((currentPage) => currentPage + 1)
+                                }
+                                className="rounded-md border border-[#e3dbe5] px-2.5 py-1.5 font-semibold disabled:opacity-40"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
                 </div>
             </section>
-            {editingEmployee && <EditEmployeeModal employee={editingEmployee} onClose={() => setEditingEmployee(null)} onUpdated={() => { setEditingEmployee(null); setPage(1); setAppliedFilters({ ...appliedFilters }); }} />}
-            {deletingEmployee && <DeleteEmployeeDialog employee={deletingEmployee} onClose={() => setDeletingEmployee(null)} onConfirm={() => removeEmployee(deletingEmployee)} />}
+            {editingEmployee && (
+                <EditEmployeeModal
+                    employee={editingEmployee}
+                    onClose={() => setEditingEmployee(null)}
+                    onUpdated={() => {
+                        setEditingEmployee(null);
+                        setPage(1);
+                        setAppliedFilters({ ...appliedFilters });
+                    }}
+                />
+            )}
+            {deletingEmployee && (
+                <DeleteEmployeeDialog
+                    employee={deletingEmployee}
+                    onClose={() => setDeletingEmployee(null)}
+                    onConfirm={() => removeEmployee(deletingEmployee)}
+                />
+            )}
         </>
     );
 }
@@ -714,8 +947,15 @@ export default function Landing() {
     const navigate = useNavigate();
     const accountUser = JSON.parse(localStorage.getItem("hris-user") || "null");
     const accountName = accountUser?.name || "User";
-    const accountInitials = accountName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
-    const [active, setActive] = useState(() => localStorage.getItem("hris-active-page") || "Dashboard");
+    const accountInitials = accountName
+        .split(" ")
+        .map((part) => part[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+    const [active, setActive] = useState(
+        () => localStorage.getItem("hris-active-page") || "Dashboard",
+    );
     const [mobileOpen, setMobileOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     const [addEmployeeOpen, setAddEmployeeOpen] = useState(false);
@@ -725,7 +965,11 @@ export default function Landing() {
     const handleLogout = async () => {
         if (loggingOut) return;
         setLoggingOut(true);
-        try { await logout(); } catch { /* Clear local auth even if the server token is already invalid. */ }
+        try {
+            await logout();
+        } catch {
+            /* Clear local auth even if the server token is already invalid. */
+        }
         localStorage.removeItem("hris-access-token");
         localStorage.removeItem("hris-user");
         localStorage.removeItem("hris-active-page");
@@ -737,9 +981,17 @@ export default function Landing() {
     };
     const content =
         active === "Dashboard" ? (
-            <DashboardContent onAddEmployee={openAddEmployee} userName={accountName} />
+            <DashboardContent
+                onAddEmployee={openAddEmployee}
+                userName={accountName}
+            />
         ) : active === "Employee Management" ? (
-            <EmployeeManagementPage key={employeeVersion} onAddEmployee={openAddEmployee} />
+            <EmployeeManagementPage
+                key={employeeVersion}
+                onAddEmployee={openAddEmployee}
+            />
+        ) : active === "Departments" ? (
+            <DepartmentManagement />
         ) : active === "Task List" ? (
             <TaskListContent />
         ) : active === "My Account" ? (
@@ -779,7 +1031,10 @@ export default function Landing() {
                                 key={item.label}
                                 onClick={() => {
                                     setActive(item.label);
-                                    localStorage.setItem("hris-active-page", item.label);
+                                    localStorage.setItem(
+                                        "hris-active-page",
+                                        item.label,
+                                    );
                                     setMobileOpen(false);
                                 }}
                                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-[13px] font-medium transition ${active === item.label ? "bg-[#eee5f1] text-[#5b3c78]" : "text-[#756b78] hover:bg-[#f4eff4] hover:text-[#5b3c78]"}`}
@@ -870,14 +1125,28 @@ export default function Landing() {
                             >
                                 <button
                                     role="menuitem"
-                                    onClick={() => { setActive("My Account"); setProfileOpen(false); localStorage.setItem("hris-active-page", "My Account"); }}
+                                    onClick={() => {
+                                        setActive("My Account");
+                                        setProfileOpen(false);
+                                        localStorage.setItem(
+                                            "hris-active-page",
+                                            "My Account",
+                                        );
+                                    }}
                                     className="w-full rounded-lg px-3 py-2.5 text-left text-xs text-[#675b6b] hover:bg-[#f7f3f7]"
                                 >
                                     My profile
                                 </button>
                                 <button
                                     role="menuitem"
-                                    onClick={() => { setActive("Account Settings"); setProfileOpen(false); localStorage.setItem("hris-active-page", "Account Settings"); }}
+                                    onClick={() => {
+                                        setActive("Account Settings");
+                                        setProfileOpen(false);
+                                        localStorage.setItem(
+                                            "hris-active-page",
+                                            "Account Settings",
+                                        );
+                                    }}
                                     className="w-full rounded-lg px-3 py-2.5 text-left text-xs text-[#675b6b] hover:bg-[#f7f3f7]"
                                 >
                                     Account settings
@@ -889,7 +1158,12 @@ export default function Landing() {
                                     disabled={loggingOut}
                                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-semibold text-[#a05f61] hover:bg-[#fbefef] disabled:cursor-wait disabled:opacity-60"
                                 >
-                                    {loggingOut && <span aria-hidden="true" className="size-3 animate-spin rounded-full border-2 border-[#d9a8a5] border-t-transparent" />}
+                                    {loggingOut && (
+                                        <span
+                                            aria-hidden="true"
+                                            className="size-3 animate-spin rounded-full border-2 border-[#d9a8a5] border-t-transparent"
+                                        />
+                                    )}
                                     {loggingOut ? "Logging out..." : "Logout"}
                                 </button>
                             </div>
@@ -897,7 +1171,14 @@ export default function Landing() {
                     </div>
                 </header>
                 <main className="mx-auto max-w-[1440px] p-5 sm:p-8 lg:p-10">
-                    {employeeNotice && <p role="status" className="mb-4 rounded-lg bg-[#e6f1ea] p-3 text-sm text-[#56806a]">{employeeNotice}</p>}
+                    {employeeNotice && (
+                        <p
+                            role="status"
+                            className="mb-4 rounded-lg bg-[#e6f1ea] p-3 text-sm text-[#56806a]"
+                        >
+                            {employeeNotice}
+                        </p>
+                    )}
                     {content}
                     {addEmployeeOpen && (
                         <AddEmployeeModal
@@ -906,8 +1187,13 @@ export default function Landing() {
                                 setAddEmployeeOpen(false);
                                 setEmployeeVersion((version) => version + 1);
                                 setActive("Employee Management");
-                                localStorage.setItem("hris-active-page", "Employee Management");
-                                setEmployeeNotice("Employee added successfully.");
+                                localStorage.setItem(
+                                    "hris-active-page",
+                                    "Employee Management",
+                                );
+                                setEmployeeNotice(
+                                    "Employee added successfully.",
+                                );
                             }}
                         />
                     )}
