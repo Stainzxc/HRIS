@@ -9,7 +9,7 @@ import {
     Trash2,
     X,
 } from "lucide-react";
-import { getDepartments } from "../services/departmentService";
+import { getAllDepartments } from "../services/departmentService";
 import {
     createPosition,
     deletePosition,
@@ -45,11 +45,9 @@ export default function PositionManagement() {
         setLoading(true);
         return Promise.all([
             getPositions(appliedFilters, page),
-            getDepartments(),
+            getAllDepartments(),
         ])
-            .then(([positionResponse, departmentResponse]) => {
-                const departmentData =
-                    departmentResponse.data.data ?? departmentResponse.data;
+            .then(([positionResponse, departmentData]) => {
                 setDepartments(departmentData);
                 const positionData =
                     positionResponse.data.data ?? positionResponse.data;

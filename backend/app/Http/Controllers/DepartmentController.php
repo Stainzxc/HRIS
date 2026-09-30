@@ -9,11 +9,17 @@ use App\Models\DepartmentModel;
 
 class DepartmentController extends Controller
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $departments = DepartmentModel::all();
-
-        $departments->load('positions');
+        $validated = $request->validate([
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+        ]);
+        $departments = DepartmentModel::query()
+            ->with('positions')
+            ->orderBy('id')
+            ->paginate($validated['per_page'] ?? 10)
+            ->withQueryString();
 
         return DepartmentResource::collection($departments);
     }

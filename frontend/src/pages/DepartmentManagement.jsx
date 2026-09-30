@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { Building2, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+    Building2,
+    ChevronLeft,
+    ChevronRight,
+    Pencil,
+    Plus,
+    Trash2,
+    X,
+} from "lucide-react";
 import {
     createDepartment,
     deleteDepartment,
@@ -11,6 +19,14 @@ const emptyForm = { name: "", description: "" };
 
 export default function DepartmentManagement() {
     const [departments, setDepartments] = useState([]);
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({
+        current: 1,
+        last: 1,
+        total: 0,
+        from: 0,
+        to: 0,
+    });
     const [form, setForm] = useState(emptyForm);
     const [editing, setEditing] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
@@ -18,13 +34,23 @@ export default function DepartmentManagement() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const load = () =>
-        getDepartments()
-            .then(({ data }) => setDepartments(data.data ?? data))
+        getDepartments(page)
+            .then(({ data }) => {
+                const rows = data.data ?? data;
+                setDepartments(rows);
+                setPagination({
+                    current: data.meta?.current_page ?? page,
+                    last: data.meta?.last_page ?? 1,
+                    total: data.meta?.total ?? rows.length,
+                    from: data.meta?.from ?? 0,
+                    to: data.meta?.to ?? rows.length,
+                });
+            })
             .catch(() => setError("Unable to load departments."))
             .finally(() => setLoading(false));
     useEffect(() => {
         load();
-    }, []);
+    }, [page]);
     const submit = async (event) => {
         event.preventDefault();
         setSaving(true);
@@ -69,7 +95,8 @@ export default function DepartmentManagement() {
         if (!window.confirm(`Delete ${department.name}?`)) return;
         try {
             await deleteDepartment(department.id);
-            await load();
+            if (page > 1 && departments.length === 1) setPage(page - 1);
+            else await load();
         } catch {
             setError("Unable to delete department. It may still be in use.");
         }
@@ -109,7 +136,7 @@ export default function DepartmentManagement() {
                 <div className="flex items-center justify-between p-5 sm:p-6">
                     <h2 className="text-lg font-semibold">All departments</h2>
                     <span className="text-xs text-[#837a85]">
-                        {departments.length} total
+                        {pagination.total} total
                     </span>
                 </div>
                 {loading ? (
@@ -132,46 +159,96 @@ export default function DepartmentManagement() {
                         <table className="w-full min-w-[680px] text-left text-sm">
                             <thead className="border-y border-[#eee8ee] bg-[#fcfbf9] text-xs text-[#837a85]">
                                 <tr>
-                                    <th className="px-5 py-3 font-semibold">Department</th>
-                                    <th className="px-5 py-3 font-semibold">Description</th>
-                                    <th className="px-5 py-3 font-semibold">Positions</th>
-                                    <th className="px-5 py-3 text-right font-semibold">Actions</th>
+                                    <th className="px-5 py-3 font-semibold">
+                                        Department
+                                    </th>
+                                    <th className="px-5 py-3 font-semibold">
+                                        Description
+                                    </th>
+                                    <th className="px-5 py-3 font-semibold">
+                                        Positions
+                                    </th>
+                                    <th className="px-5 py-3 text-right font-semibold">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#eee8ee]">
                                 {departments.map((department) => (
-                                    <tr key={department.id} className="hover:bg-[#fdfbfc]">
-                                        <td className="px-5 py-4 font-semibold">{department.name}</td>
+                                    <tr
+                                        key={department.id}
+                                        className="hover:bg-[#fdfbfc]"
+                                    >
+                                        <td className="px-5 py-4 font-semibold">
+                                            {department.name}
+                                        </td>
                                         <td className="max-w-xs truncate px-5 py-4 text-[#837a85]">
-                                            {department.description || "No description"}
+                                            {department.description ||
+                                                "No description"}
                                         </td>
                                         <td className="px-5 py-4 text-[#76548b]">
                                             {department.positions?.length ?? 0}
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="flex justify-end gap-1">
-                                    <button
-                                        type="button"
-                                        onClick={() => beginEdit(department)}
-                                        aria-label={`Edit ${department.name}`}
-                                        className="rounded-lg p-2 text-[#76548b] hover:bg-[#f4eff4]"
-                                    >
-                                        <Pencil className="size-4" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => remove(department)}
-                                        aria-label={`Delete ${department.name}`}
-                                        className="rounded-lg p-2 text-[#a05f61] hover:bg-[#fbefef]"
-                                    >
-                                        <Trash2 className="size-4" />
-                                    </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        beginEdit(department)
+                                                    }
+                                                    aria-label={`Edit ${department.name}`}
+                                                    className="rounded-lg p-2 text-[#76548b] hover:bg-[#f4eff4]"
+                                                >
+                                                    <Pencil className="size-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        remove(department)
+                                                    }
+                                                    aria-label={`Delete ${department.name}`}
+                                                    className="rounded-lg p-2 text-[#a05f61] hover:bg-[#fbefef]"
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                )}
+                {!loading && departments.length > 0 && (
+                    <div className="flex items-center justify-between border-t border-[#eee8ee] px-5 py-4 text-xs text-[#837a85]">
+                        <span>
+                            Showing {pagination.from}-{pagination.to} of{" "}
+                            {pagination.total}
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                disabled={pagination.current <= 1}
+                                onClick={() => setPage(page - 1)}
+                                className="rounded-lg border border-[#d9cedc] p-2 disabled:opacity-40"
+                                aria-label="Previous page"
+                            >
+                                <ChevronLeft className="size-4" />
+                            </button>
+                            <span>
+                                Page {pagination.current} of{" "}
+                                {Math.max(1, pagination.last)}
+                            </span>
+                            <button
+                                type="button"
+                                disabled={pagination.current >= pagination.last}
+                                onClick={() => setPage(page + 1)}
+                                className="rounded-lg border border-[#d9cedc] p-2 disabled:opacity-40"
+                                aria-label="Next page"
+                            >
+                                <ChevronRight className="size-4" />
+                            </button>
+                        </div>
                     </div>
                 )}
             </section>
