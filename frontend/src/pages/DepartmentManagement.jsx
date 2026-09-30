@@ -105,19 +105,19 @@ export default function DepartmentManagement() {
                     {error}
                 </p>
             )}
-            <section className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
-                <div className="mb-5 flex items-center justify-between">
+            <section className="overflow-hidden rounded-2xl border border-[#e9e2e9] bg-white">
+                <div className="flex items-center justify-between p-5 sm:p-6">
                     <h2 className="text-lg font-semibold">All departments</h2>
                     <span className="text-xs text-[#837a85]">
                         {departments.length} total
                     </span>
                 </div>
                 {loading ? (
-                    <p className="text-sm text-[#837a85]">
+                    <p className="p-6 text-sm text-[#837a85]">
                         Loading departments...
                     </p>
                 ) : departments.length === 0 ? (
-                    <div className="py-10 text-center">
+                    <div className="p-10 text-center">
                         <Building2
                             className="mx-auto size-8 text-[#b4a5b8]"
                             strokeWidth={1.5}
@@ -128,29 +128,28 @@ export default function DepartmentManagement() {
                         </p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-[#eee8ee]">
-                        {departments.map((department) => (
-                            <div
-                                key={department.id}
-                                className="flex items-start justify-between gap-4 py-4 first:pt-0 last:pb-0"
-                            >
-                                <div>
-                                    <h3 className="font-semibold">
-                                        {department.name}
-                                    </h3>
-                                    <p className="mt-1 text-sm text-[#837a85]">
-                                        {department.description ||
-                                            "No description"}
-                                    </p>
-                                    <p className="mt-2 text-xs text-[#9b82a4]">
-                                        {department.positions?.length ?? 0}{" "}
-                                        position
-                                        {department.positions?.length === 1
-                                            ? ""
-                                            : "s"}
-                                    </p>
-                                </div>
-                                <div className="flex gap-1">
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[680px] text-left text-sm">
+                            <thead className="border-y border-[#eee8ee] bg-[#fcfbf9] text-xs text-[#837a85]">
+                                <tr>
+                                    <th className="px-5 py-3 font-semibold">Department</th>
+                                    <th className="px-5 py-3 font-semibold">Description</th>
+                                    <th className="px-5 py-3 font-semibold">Positions</th>
+                                    <th className="px-5 py-3 text-right font-semibold">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#eee8ee]">
+                                {departments.map((department) => (
+                                    <tr key={department.id} className="hover:bg-[#fdfbfc]">
+                                        <td className="px-5 py-4 font-semibold">{department.name}</td>
+                                        <td className="max-w-xs truncate px-5 py-4 text-[#837a85]">
+                                            {department.description || "No description"}
+                                        </td>
+                                        <td className="px-5 py-4 text-[#76548b]">
+                                            {department.positions?.length ?? 0}
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <div className="flex justify-end gap-1">
                                     <button
                                         type="button"
                                         onClick={() => beginEdit(department)}
@@ -167,9 +166,12 @@ export default function DepartmentManagement() {
                                     >
                                         <Trash2 className="size-4" />
                                     </button>
-                                </div>
-                            </div>
-                        ))}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 )}
             </section>
