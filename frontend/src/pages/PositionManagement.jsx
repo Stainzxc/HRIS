@@ -5,6 +5,7 @@ import {
     ChevronRight,
     Pencil,
     Plus,
+    Search,
     Trash2,
     X,
 } from "lucide-react";
@@ -32,12 +33,20 @@ export default function PositionManagement() {
     const [editing, setEditing] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [page, setPage] = useState(1);
+    const [filters, setFilters] = useState({ search: "", department_id: "" });
+    const [appliedFilters, setAppliedFilters] = useState({
+        search: "",
+        department_id: "",
+    });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const load = () => {
         setLoading(true);
-        return Promise.all([getPositions(page), getDepartments()])
+        return Promise.all([
+            getPositions(appliedFilters, page),
+            getDepartments(),
+        ])
             .then(([positionResponse, departmentResponse]) => {
                 const departmentData =
                     departmentResponse.data.data ?? departmentResponse.data;
@@ -60,9 +69,14 @@ export default function PositionManagement() {
     };
     useEffect(() => {
         load();
-    }, [page]);
+    }, [page, appliedFilters]);
     const totalPages = Math.max(1, pagination.last);
     const visiblePositions = positions;
+    const applyFilters = (event) => {
+        event.preventDefault();
+        setPage(1);
+        setAppliedFilters(filters);
+    };
     const submit = async (event) => {
         event.preventDefault();
         setSaving(true);
@@ -153,6 +167,48 @@ export default function PositionManagement() {
                 </p>
             )}
             <section className="overflow-hidden rounded-2xl border border-[#e9e2e9] bg-white">
+                <form
+                    onSubmit={applyFilters}
+                    className="flex flex-wrap gap-3 border-b border-[#eee8ee] p-5 sm:p-6"
+                >
+                    <label className="flex min-w-60 flex-1 items-center gap-2 rounded-lg border border-[#d9cedc] px-3 py-2">
+                        <Search className="size-4 text-[#837a85]" />
+                        <input
+                            value={filters.search}
+                            onChange={(event) =>
+                                setFilters({
+                                    ...filters,
+                                    search: event.target.value,
+                                })
+                            }
+                            placeholder="Search positions..."
+                            className="w-full text-sm outline-none"
+                        />
+                    </label>
+                    <select
+                        value={filters.department_id}
+                        onChange={(event) =>
+                            setFilters({
+                                ...filters,
+                                department_id: event.target.value,
+                            })
+                        }
+                        className="rounded-lg border border-[#d9cedc] px-3 py-2 text-sm"
+                    >
+                        <option value="">All departments</option>
+                        {departments.map((department) => (
+                            <option key={department.id} value={department.id}>
+                                {department.name}
+                            </option>
+                        ))}
+                    </select>
+                    <button
+                        type="submit"
+                        className="rounded-lg bg-[#5b3c78] px-4 py-2 text-sm font-semibold text-white"
+                    >
+                        Filter
+                    </button>
+                </form>
                 <div className="flex items-center justify-between p-5 sm:p-6">
                     <h2 className="text-lg font-semibold">All positions</h2>
                     <span className="text-xs text-[#837a85]">

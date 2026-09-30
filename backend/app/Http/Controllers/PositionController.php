@@ -6,13 +6,32 @@ use App\Http\Requests\PositionRequest\StorePositionRequest;
 use App\Http\Requests\PositionRequest\UpdatePositionRequest;
 use App\Http\Resources\PositionResource;
 use App\Models\PositionModel;
+use Illuminate\Http\Request;
 
 class PositionController extends Controller
 {
-    public function index(\Illuminate\Http\Request $request)
+    public function index(Request $request)
     {
-        $perPage = min((int) $request->integer('per_page', 10), 100);
-        $position = PositionModel::with('department')->paginate($perPage);
+        $validated = $request->validate([
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'search' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'department_id' => ['sometimes', 'nullable', 'integer', 'exists:departments,id'],
+        ]);
+        $position = PositionModel::query()
+            ->with('department')
+            ->when(filled($validated['search'] ?? null), function ($query) use ($validated) {
+                $search = trim($validated['search']);
+                $query->where(function ($positionQuery) use ($search) {
+                    $positionQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhereHas('department', fn ($departmentQuery) => $departmentQuery->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->when(!empty($validated['department_id']), fn ($query) => $query->where('department_id', $validated['department_id']))
+            ->orderBy('id')
+            ->paginate($validated['per_page'] ?? 10)
+            ->withQueryString();
 
         return PositionResource::collection($position);
     }
