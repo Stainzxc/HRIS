@@ -14,9 +14,17 @@ class DepartmentController extends Controller
         $validated = $request->validate([
             'page' => ['sometimes', 'integer', 'min:1'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'search' => ['sometimes', 'nullable', 'string', 'max:255'],
         ]);
         $departments = DepartmentModel::query()
             ->with('positions')
+            ->when(filled($validated['search'] ?? null), function ($query) use ($validated) {
+                $search = trim($validated['search']);
+                $query->where(function ($departmentQuery) use ($search) {
+                    $departmentQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
             ->orderBy('id')
             ->paginate($validated['per_page'] ?? 10)
             ->withQueryString();

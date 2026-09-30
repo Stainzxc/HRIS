@@ -1,7 +1,7 @@
 import axiosConfig from "./axiosConfig";
 
-export const getDepartments = (page = 1, perPage = 10) =>
-    axiosConfig.get("/departments", { params: { page, per_page: perPage } });
+export const getDepartments = (filters = {}, page = 1, perPage = 10) =>
+    axiosConfig.get("/departments", { params: { ...filters, page, per_page: perPage } });
 
 export const getAllDepartments = async () => {
     const departments = [];
@@ -9,7 +9,7 @@ export const getAllDepartments = async () => {
     let lastPage = 1;
 
     do {
-        const { data } = await getDepartments(page);
+        const { data } = await getDepartments({}, page);
         departments.push(...(data.data ?? data));
         lastPage = data.meta?.last_page ?? 1;
         page += 1;

@@ -5,6 +5,7 @@ import {
     ChevronRight,
     Pencil,
     Plus,
+    Search,
     Trash2,
     X,
 } from "lucide-react";
@@ -20,6 +21,8 @@ const emptyForm = { name: "", description: "" };
 export default function DepartmentManagement() {
     const [departments, setDepartments] = useState([]);
     const [page, setPage] = useState(1);
+    const [filters, setFilters] = useState({ search: "" });
+    const [appliedFilters, setAppliedFilters] = useState({ search: "" });
     const [isPaginating, setIsPaginating] = useState(false);
     const [pagination, setPagination] = useState({
         current: 1,
@@ -35,7 +38,7 @@ export default function DepartmentManagement() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const load = () =>
-        getDepartments(page)
+        getDepartments(appliedFilters, page)
             .then(({ data }) => {
                 const rows = data.data ?? data;
                 setDepartments(rows);
@@ -54,7 +57,13 @@ export default function DepartmentManagement() {
             });
     useEffect(() => {
         load();
-    }, [page]);
+    }, [page, appliedFilters]);
+    const applyFilters = (event) => {
+        event.preventDefault();
+        setLoading(true);
+        setPage(1);
+        setAppliedFilters(filters);
+    };
     const submit = async (event) => {
         event.preventDefault();
         setSaving(true);
@@ -137,6 +146,31 @@ export default function DepartmentManagement() {
                 </p>
             )}
             <section className="overflow-hidden rounded-2xl border border-[#e9e2e9] bg-white">
+                <form onSubmit={applyFilters} className="flex gap-3 border-b border-[#eee8ee] p-5 sm:p-6">
+                    <label className="flex flex-1 items-center gap-2 rounded-lg border border-[#d9cedc] px-3 py-2">
+                        <Search className="size-4 text-[#837a85]" />
+                        <input value={filters.search} onChange={(event) => setFilters({ search: event.target.value })} placeholder="Search departments..." className="w-full text-sm outline-none" />
+                        {filters.search && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const clearedFilters = { search: "" };
+                                    setFilters(clearedFilters);
+                                    setLoading(true);
+                                    setPage(1);
+                                    setAppliedFilters(clearedFilters);
+                                }}
+                                className="rounded-md p-1 text-[#837a85] hover:bg-[#f4eff4]"
+                                aria-label="Clear department search"
+                            >
+                                <X className="size-4" />
+                            </button>
+                        )}
+                    </label>
+                    <button type="submit" disabled={loading} className="rounded-lg bg-[#5b3c78] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
+                        {loading ? "Loading..." : "Filter"}
+                    </button>
+                </form>
                 <div className="flex items-center justify-between p-5 sm:p-6">
                     <h2 className="text-lg font-semibold">All departments</h2>
                     <span className="text-xs text-[#837a85]">
