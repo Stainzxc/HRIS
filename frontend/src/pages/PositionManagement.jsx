@@ -33,6 +33,7 @@ export default function PositionManagement() {
     const [editing, setEditing] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [page, setPage] = useState(1);
+    const [isPaginating, setIsPaginating] = useState(false);
     const [filters, setFilters] = useState({ search: "", department_id: "" });
     const [appliedFilters, setAppliedFilters] = useState({
         search: "",
@@ -63,7 +64,10 @@ export default function PositionManagement() {
                 });
             })
             .catch(() => setError("Unable to load positions."))
-            .finally(() => setLoading(false));
+            .finally(() => {
+                setLoading(false);
+                setIsPaginating(false);
+            });
     };
     useEffect(() => {
         load();
@@ -213,7 +217,7 @@ export default function PositionManagement() {
                         {positions.length} total
                     </span>
                 </div>
-                {loading ? (
+                {loading && positions.length === 0 ? (
                     <p className="p-6 text-sm text-[#837a85]">
                         Loading positions...
                     </p>
@@ -229,7 +233,15 @@ export default function PositionManagement() {
                     </div>
                 ) : (
                     <>
-                        <div className="overflow-x-auto">
+                        <div className="relative overflow-x-auto">
+                            {(loading || isPaginating) && (
+                                <div className="absolute inset-0 z-10 grid place-items-center bg-white/70">
+                                    <div className="flex items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm text-[#837a85] shadow-sm" role="status" aria-live="polite">
+                                        <span className="size-4 animate-spin rounded-full border-2 border-[#d9cedc] border-t-[#5b3c78]" />
+                                        Loading positions...
+                                    </div>
+                                </div>
+                            )}
                             <table className="w-full min-w-[680px] text-left text-sm">
                                 <thead className="border-y border-[#eee8ee] bg-[#fcfbf9] text-xs text-[#837a85]">
                                     <tr>
@@ -247,7 +259,7 @@ export default function PositionManagement() {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-[#eee8ee]">
+                                <tbody className={`divide-y divide-[#eee8ee] ${loading || isPaginating ? "opacity-50" : ""}`}>
                                     {visiblePositions.map((position) => (
                                         <tr
                                             key={position.id}
@@ -294,15 +306,12 @@ export default function PositionManagement() {
                             </table>
                         </div>
                         <div className="flex items-center justify-between border-t border-[#eee8ee] px-5 py-4 text-xs text-[#837a85]">
-                            <span>
-                                Showing {pagination.from}-{pagination.to} of{" "}
-                                {pagination.total}
-                            </span>
+                            <span>{loading || isPaginating ? "Loading positions..." : `Showing ${pagination.from}-${pagination.to} of ${pagination.total}`}</span>
                             <div className="flex items-center gap-2">
                                 <button
                                     type="button"
-                                    disabled={page === 1}
-                                    onClick={() => setPage(page - 1)}
+                                    disabled={loading || isPaginating || page === 1}
+                                    onClick={() => { setIsPaginating(true); setPage(page - 1); }}
                                     className="rounded-lg border border-[#d9cedc] p-2 disabled:opacity-40"
                                     aria-label="Previous page"
                                 >
@@ -313,8 +322,8 @@ export default function PositionManagement() {
                                 </span>
                                 <button
                                     type="button"
-                                    disabled={page === totalPages}
-                                    onClick={() => setPage(page + 1)}
+                                    disabled={loading || isPaginating || page === totalPages}
+                                    onClick={() => { setIsPaginating(true); setPage(page + 1); }}
                                     className="rounded-lg border border-[#d9cedc] p-2 disabled:opacity-40"
                                     aria-label="Next page"
                                 >

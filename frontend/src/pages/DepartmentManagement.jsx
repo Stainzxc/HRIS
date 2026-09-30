@@ -20,6 +20,7 @@ const emptyForm = { name: "", description: "" };
 export default function DepartmentManagement() {
     const [departments, setDepartments] = useState([]);
     const [page, setPage] = useState(1);
+    const [isPaginating, setIsPaginating] = useState(false);
     const [pagination, setPagination] = useState({
         current: 1,
         last: 1,
@@ -47,7 +48,10 @@ export default function DepartmentManagement() {
                 });
             })
             .catch(() => setError("Unable to load departments."))
-            .finally(() => setLoading(false));
+            .finally(() => {
+                setLoading(false);
+                setIsPaginating(false);
+            });
     useEffect(() => {
         load();
     }, [page]);
@@ -139,7 +143,7 @@ export default function DepartmentManagement() {
                         {pagination.total} total
                     </span>
                 </div>
-                {loading ? (
+                {loading && departments.length === 0 ? (
                     <p className="p-6 text-sm text-[#837a85]">
                         Loading departments...
                     </p>
@@ -155,7 +159,15 @@ export default function DepartmentManagement() {
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <div className="relative overflow-x-auto">
+                        {(loading || isPaginating) && (
+                            <div className="absolute inset-0 z-10 grid place-items-center bg-white/70">
+                                <div className="flex items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm text-[#837a85] shadow-sm" role="status" aria-live="polite">
+                                    <span className="size-4 animate-spin rounded-full border-2 border-[#d9cedc] border-t-[#5b3c78]" />
+                                    Loading departments...
+                                </div>
+                            </div>
+                        )}
                         <table className="w-full min-w-[680px] text-left text-sm">
                             <thead className="border-y border-[#eee8ee] bg-[#fcfbf9] text-xs text-[#837a85]">
                                 <tr>
@@ -173,7 +185,7 @@ export default function DepartmentManagement() {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[#eee8ee]">
+                            <tbody className={`divide-y divide-[#eee8ee] ${loading || isPaginating ? "opacity-50" : ""}`}>
                                 {departments.map((department) => (
                                     <tr
                                         key={department.id}
@@ -219,17 +231,14 @@ export default function DepartmentManagement() {
                         </table>
                     </div>
                 )}
-                {!loading && departments.length > 0 && (
+                {departments.length > 0 && (
                     <div className="flex items-center justify-between border-t border-[#eee8ee] px-5 py-4 text-xs text-[#837a85]">
-                        <span>
-                            Showing {pagination.from}-{pagination.to} of{" "}
-                            {pagination.total}
-                        </span>
+                        <span>{loading || isPaginating ? "Loading departments..." : `Showing ${pagination.from}-${pagination.to} of ${pagination.total}`}</span>
                         <div className="flex items-center gap-2">
                             <button
                                 type="button"
-                                disabled={pagination.current <= 1}
-                                onClick={() => setPage(page - 1)}
+                                disabled={loading || isPaginating || pagination.current <= 1}
+                                onClick={() => { setIsPaginating(true); setPage(page - 1); }}
                                 className="rounded-lg border border-[#d9cedc] p-2 disabled:opacity-40"
                                 aria-label="Previous page"
                             >
@@ -241,8 +250,8 @@ export default function DepartmentManagement() {
                             </span>
                             <button
                                 type="button"
-                                disabled={pagination.current >= pagination.last}
-                                onClick={() => setPage(page + 1)}
+                                disabled={loading || isPaginating || pagination.current >= pagination.last}
+                                onClick={() => { setIsPaginating(true); setPage(page + 1); }}
                                 className="rounded-lg border border-[#d9cedc] p-2 disabled:opacity-40"
                                 aria-label="Next page"
                             >
