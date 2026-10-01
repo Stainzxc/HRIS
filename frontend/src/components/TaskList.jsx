@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { CheckCircle, ChevronLeft, ChevronRight, Plus, Search, X } from "lucide-react";
 import AddTaskModal from "./AddTaskModal";
 import { getTasks } from "../services/taskService";
 
@@ -22,11 +22,13 @@ export default function TaskList() {
     const [isPaginating, setIsPaginating] = useState(false);
     const [error, setError] = useState("");
     const [addTaskOpen, setAddTaskOpen] = useState(false);
+    const [filters, setFilters] = useState({ search: "", status: "", priority: "" });
+    const [appliedFilters, setAppliedFilters] = useState({ search: "", status: "", priority: "" });
     useEffect(() => {
         let mounted = true;
         setLoading(true);
         setError("");
-        getTasks({}, page)
+        getTasks(appliedFilters, page)
             .then(({ data }) => {
                 if (mounted) {
                     setTasks(data.data ?? []);
@@ -47,7 +49,18 @@ export default function TaskList() {
         return () => {
             mounted = false;
         };
-    }, [page]);
+    }, [page, appliedFilters]);
+    const applyFilters = (event) => {
+        event.preventDefault();
+        setPage(1);
+        setAppliedFilters(filters);
+    };
+    const clearFilters = () => {
+        const cleared = { search: "", status: "", priority: "" };
+        setFilters(cleared);
+        setPage(1);
+        setAppliedFilters(cleared);
+    };
     const formatDate = (date) =>
         date
             ? new Intl.DateTimeFormat("en-US", {
@@ -137,6 +150,17 @@ export default function TaskList() {
                 ))}
             </div>
             <section className="rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
+                <form onSubmit={applyFilters} className="mb-5 flex flex-wrap gap-3 border-b border-[#eee8ee] pb-5">
+                    <label className="flex min-w-[220px] flex-1 items-center gap-2 rounded-lg border border-[#d9cedc] px-3 py-2">
+                        <Search className="size-4 text-[#837a85]" />
+                        <input value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} placeholder="Search tasks..." className="w-full text-sm outline-none" />
+                        {filters.search && <button type="button" onClick={() => setFilters({ ...filters, search: "" })} aria-label="Clear task search"><X className="size-4" /></button>}
+                    </label>
+                    <select value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })} className="rounded-lg border border-[#d9cedc] px-3 py-2 text-sm text-[#675b6b]"><option value="">All statuses</option><option>To do</option><option>In progress</option><option>Completed</option></select>
+                    <select value={filters.priority} onChange={(event) => setFilters({ ...filters, priority: event.target.value })} className="rounded-lg border border-[#d9cedc] px-3 py-2 text-sm text-[#675b6b]"><option value="">All priorities</option><option>High</option><option>Medium</option><option>Low</option></select>
+                    <button type="submit" disabled={loading} className="rounded-lg bg-[#5b3c78] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{loading ? "Loading..." : "Filter"}</button>
+                    {(filters.search || filters.status || filters.priority) && <button type="button" onClick={clearFilters} className="rounded-lg border border-[#d9cedc] px-4 py-2 text-sm text-[#675b6b]">Clear</button>}
+                </form>
                 <h2 className="text-base font-semibold text-[#352e39]">
                     All tasks
                 </h2>
