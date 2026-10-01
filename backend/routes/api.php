@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\PositionController;
+use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('login', [AuthController::class, 'login']);
@@ -18,3 +19,4 @@ Route::apiResource('departments', DepartmentController::class);
 Route::get('employees/export', [EmployeeController::class, 'export']);
 Route::apiResource('employees', EmployeeController::class);
 Route::apiResource('positions', PositionController::class);
+Route::apiResource('tasks', TaskController::class);
