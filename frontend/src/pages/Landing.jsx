@@ -9,6 +9,7 @@ import PositionManagement from "./PositionManagement";
 import { logout } from "../services/authService";
 import { getTasks } from "../services/taskService";
 import AddTaskModal from "../components/AddTaskModal";
+import TaskList from "../components/TaskList";
 import {
     ArrowRight,
     Bell,
@@ -634,7 +635,7 @@ export default function Landing() {
         ) : active === "Positions" ? (
             <PositionManagement />
         ) : active === "Task List" ? (
-            <TaskListContent />
+            <TaskList />
         ) : active === "My Account" ? (
             <MyAccount />
         ) : active === "Account Settings" ? (
