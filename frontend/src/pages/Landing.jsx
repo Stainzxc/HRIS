@@ -10,6 +10,7 @@ import AccountSettings from "./AccountSettings";
 import DepartmentManagement from "./DepartmentManagement";
 import PositionManagement from "./PositionManagement";
 import { logout } from "../services/authService";
+import { getTasks } from "../services/taskService";
 import {
     ArrowRight,
     Bell,
@@ -775,43 +776,39 @@ function PlaceholderContent({ title, description, icon }) {
 }
 
 function TaskListContent() {
-    const taskItems = [
-        [
-            "Review onboarding documents",
-            "People team",
-            "Today",
-            "High",
-            "In progress",
-        ],
-        [
-            "Schedule quarterly check-ins",
-            "Samantha Collins",
-            "Tomorrow",
-            "Medium",
-            "To do",
-        ],
-        [
-            "Update benefits information",
-            "HR Operations",
-            "Sep 20",
-            "Low",
-            "To do",
-        ],
-        [
-            "Prepare monthly payroll report",
-            "Finance team",
-            "Sep 22",
-            "High",
-            "Completed",
-        ],
-        [
-            "Send employee satisfaction survey",
-            "Alex Johnson",
-            "Sep 24",
-            "Medium",
-            "In progress",
-        ],
-    ];
+    const [tasks, setTasks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let mounted = true;
+        getTasks()
+            .then(({ data }) => mounted && setTasks(data.data ?? []))
+            .catch(
+                () =>
+                    mounted &&
+                    setError("Unable to load tasks. Please try again."),
+            )
+            .finally(() => mounted && setLoading(false));
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    const formatDueDate = (date) => {
+        if (!date) return "No due date";
+        return new Intl.DateTimeFormat("en-US", {
+            month: "short",
+            day: "numeric",
+        }).format(new Date(`${date}T00:00:00`));
+    };
+
+    const openTasks = tasks.filter(
+        (task) => task.status !== "Completed",
+    ).length;
+    const completedTasks = tasks.filter(
+        (task) => task.status === "Completed",
+    ).length;
 
     const statusStyles = {
         "To do": "bg-[#f3eff4] text-[#77647f]",
@@ -846,9 +843,12 @@ function TaskListContent() {
 
             <div className="mb-6 grid gap-4 sm:grid-cols-3">
                 {[
-                    ["18", "Open tasks"],
-                    ["05", "Due this week"],
-                    ["12", "Completed"],
+                    [openTasks, "Open tasks"],
+                    [
+                        tasks.filter((task) => task.due_date).length,
+                        "With due dates",
+                    ],
+                    [completedTasks, "Completed"],
                 ].map(([value, label]) => (
                     <div
                         key={label}
@@ -895,16 +895,47 @@ function TaskListContent() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#f1edf1]">
-                            {taskItems.map(
-                                ([title, owner, due, priority, status]) => (
+                            {loading && (
+                                <tr>
+                                    <td
+                                        className="py-8 text-center"
+                                        colSpan="5"
+                                    >
+                                        Loading tasks...
+                                    </td>
+                                </tr>
+                            )}
+                            {!loading && error && (
+                                <tr>
+                                    <td
+                                        className="py-8 text-center text-[#aa665e]"
+                                        colSpan="5"
+                                    >
+                                        {error}
+                                    </td>
+                                </tr>
+                            )}
+                            {!loading && !error && tasks.length === 0 && (
+                                <tr>
+                                    <td
+                                        className="py-8 text-center"
+                                        colSpan="5"
+                                    >
+                                        No tasks found.
+                                    </td>
+                                </tr>
+                            )}
+                            {!loading &&
+                                !error &&
+                                tasks.map((task) => (
                                     <tr
-                                        key={title}
+                                        key={task.id}
                                         className="text-xs text-[#625968]"
                                     >
                                         <td className="py-4">
                                             <div className="flex items-center gap-3">
                                                 <span
-                                                    className={`grid size-7 place-items-center rounded-full border ${status === "Completed" ? "border-[#b9d7c4] bg-[#e6f1ea] text-[#56806a]" : "border-[#d5c9d9] text-[#866896]"}`}
+                                                    className={`grid size-7 place-items-center rounded-full border ${task.status === "Completed" ? "border-[#b9d7c4] bg-[#e6f1ea] text-[#56806a]" : "border-[#d5c9d9] text-[#866896]"}`}
                                                 >
                                                     <Icon
                                                         name="check"
@@ -912,33 +943,34 @@ function TaskListContent() {
                                                     />
                                                 </span>
                                                 <span
-                                                    className={`font-semibold ${status === "Completed" ? "text-[#9a909c] line-through" : "text-[#3c3440]"}`}
+                                                    className={`font-semibold ${task.status === "Completed" ? "text-[#9a909c] line-through" : "text-[#3c3440]"}`}
                                                 >
-                                                    {title}
+                                                    {task.title}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="py-4">{owner}</td>
+                                        <td className="py-4">
+                                            {task.owner || "Unassigned"}
+                                        </td>
                                         <td className="py-4 text-[#918793]">
-                                            {due}
+                                            {formatDueDate(task.due_date)}
                                         </td>
                                         <td className="py-4">
                                             <span
-                                                className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${priorityStyles[priority]}`}
+                                                className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${priorityStyles[task.priority]}`}
                                             >
-                                                {priority}
+                                                {task.priority}
                                             </span>
                                         </td>
                                         <td className="py-4">
                                             <span
-                                                className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusStyles[status]}`}
+                                                className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusStyles[task.status]}`}
                                             >
-                                                {status}
+                                                {task.status}
                                             </span>
                                         </td>
                                     </tr>
-                                ),
-                            )}
+                                ))}
                         </tbody>
                     </table>
                 </div>
