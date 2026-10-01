@@ -322,14 +322,22 @@ function PlaceholderContent({ title, description, icon }) {
 
 function TaskListContent() {
     const [tasks, setTasks] = useState([]);
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [addTaskOpen, setAddTaskOpen] = useState(false);
 
     useEffect(() => {
         let mounted = true;
-        getTasks()
-            .then(({ data }) => mounted && setTasks(data.data ?? []))
+        setLoading(true);
+        setError("");
+        getTasks({}, page)
+            .then(({ data }) => {
+                if (!mounted) return;
+                setTasks(data.data ?? []);
+                setPagination(data.meta ?? null);
+            })
             .catch(
                 () =>
                     mounted &&
@@ -339,7 +347,7 @@ function TaskListContent() {
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [page]);
 
     const formatDueDate = (date) => {
         if (!date) return "No due date";
@@ -523,6 +531,43 @@ function TaskListContent() {
                         </tbody>
                     </table>
                 </div>
+                {pagination && pagination.last_page > 1 && (
+                    <div className="mt-5 flex items-center justify-between border-t border-[#eee9ee] pt-4 text-xs text-[#837a85]">
+                        <span>
+                            Page {pagination.current_page} of{" "}
+                            {pagination.last_page}
+                        </span>
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                disabled={
+                                    pagination.current_page <= 1 || loading
+                                }
+                                onClick={() =>
+                                    setPage((current) =>
+                                        Math.max(1, current - 1),
+                                    )
+                                }
+                                className="rounded-lg border border-[#e3dbe5] px-3 py-2 font-semibold text-[#675b6b] disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                                {loading ? "Loading..." : "Previous"}
+                            </button>
+                            <button
+                                type="button"
+                                disabled={
+                                    pagination.current_page >=
+                                        pagination.last_page || loading
+                                }
+                                onClick={() =>
+                                    setPage((current) => current + 1)
+                                }
+                                className="rounded-lg border border-[#e3dbe5] px-3 py-2 font-semibold text-[#675b6b] disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
             </section>
             {addTaskOpen && (
                 <AddTaskModal
