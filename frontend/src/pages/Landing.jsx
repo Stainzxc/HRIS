@@ -10,6 +10,7 @@ import { logout } from "../services/authService";
 import { getTasks } from "../services/taskService";
 import AddTaskModal from "../components/AddTaskModal";
 import TaskList from "../components/TaskList";
+import LeaveRequestList from "../components/LeaveRequestList";
 import {
     ArrowRight,
     Bell,
@@ -28,6 +29,7 @@ const navItems = [
     { label: "Departments", icon: "briefcase" },
     { label: "Positions", icon: "briefcase" },
     { label: "Task List", icon: "check" },
+    { label: "Leave Requests", icon: "bell" },
 ];
 
 const employees = [
@@ -636,6 +638,8 @@ export default function Landing() {
             <PositionManagement />
         ) : active === "Task List" ? (
             <TaskList />
+        ) : active === "Leave Requests" ? (
+            <LeaveRequestList />
         ) : active === "My Account" ? (
             <MyAccount />
         ) : active === "Account Settings" ? (
