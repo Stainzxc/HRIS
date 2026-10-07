@@ -6,7 +6,9 @@ use App\Http\Requests\LeaveRequest\StoreLeaveRequestRequest;
 use App\Http\Requests\LeaveRequest\UpdateLeaveRequestRequest;
 use App\Http\Resources\LeaveRequestResource;
 use App\Models\LeaveRequestModel;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class LeaveRequestController extends Controller
 {
@@ -31,8 +33,50 @@ class LeaveRequestController extends Controller
 
     public function update(UpdateLeaveRequestRequest $request, LeaveRequestModel $leaveRequest)
     {
-        $leaveRequest->update([...$request->validated(), 'reviewed_at' => now()]);
-        return new LeaveRequestResource($leaveRequest->refresh()->load('employee'));
+        $validated = $request->validated();
+        $oldStatus = $leaveRequest->status;
+        $newStatus = $validated['status'];
+
+        $updatedRequest = app(DatabaseManager::class)->transaction(function () use ($leaveRequest, $validated, $oldStatus, $newStatus) {
+            $days = $leaveRequest->start_date->diffInDays($leaveRequest->end_date) + 1;
+
+            if ($oldStatus !== 'Approved' && $newStatus === 'Approved') {
+                $balance = $leaveRequest->employee->leaveBalances()
+                    ->where('leave_type', $leaveRequest->leave_type)
+                    ->where('year', $leaveRequest->start_date->year)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$balance) {
+                    throw ValidationException::withMessages([
+                        'status' => 'No leave balance exists for this employee, leave type, and year.',
+                    ]);
+                }
+
+                if ($balance->allocated_days - $balance->used_days < $days) {
+                    throw ValidationException::withMessages([
+                        'status' => "Insufficient leave balance. This request needs {$days} day(s).",
+                    ]);
+                }
+
+                $balance->increment('used_days', $days);
+            } elseif ($oldStatus === 'Approved' && $newStatus !== 'Approved') {
+                $balance = $leaveRequest->employee->leaveBalances()
+                    ->where('leave_type', $leaveRequest->leave_type)
+                    ->where('year', $leaveRequest->start_date->year)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($balance) {
+                    $balance->update(['used_days' => max(0, $balance->used_days - $days)]);
+                }
+            }
+
+            $leaveRequest->update([...$validated, 'reviewed_at' => now()]);
+            return $leaveRequest->refresh();
+        });
+
+        return new LeaveRequestResource($updatedRequest->load('employee'));
     }
 
     public function destroy(LeaveRequestModel $leaveRequest)

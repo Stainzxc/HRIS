@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class EmployeeModel extends Model
 {
     protected $table = 'employees';
-    
+
     protected $fillable = [
         'employee_number',
         'first_name',
@@ -34,5 +34,10 @@ class EmployeeModel extends Model
     public function position()
     {
         return $this->belongsTo(PositionModel::class, 'position_id');
+    }
+
+    public function leaveBalances()
+    {
+        return $this->hasMany(LeaveBalanceModel::class, 'employee_id');
     }
 }
