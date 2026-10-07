@@ -6,6 +6,8 @@ import {
     updateLeaveRequest,
 } from "../services/leaveRequestService";
 import AddLeaveRequestModal from "./AddLeaveRequestModal";
+import AddLeaveBalanceModal from "./AddLeaveBalanceModal";
+import { getLeaveBalances } from "../services/leaveBalanceService";
 
 const colors = {
     Pending: "bg-[#f8eddb] text-[#a57c51]",
@@ -19,15 +21,19 @@ export default function LeaveRequestList() {
         [search, setSearch] = useState(""),
         [loading, setLoading] = useState(true),
         [error, setError] = useState(""),
+        [balances, setBalances] = useState([]),
         [modal, setModal] = useState(false);
+    const [balanceModal, setBalanceModal] = useState(false);
     const load = () => {
         setLoading(true);
         Promise.all([
             getLeaveRequests({ status: filter, search }),
             getEmployees(),
+            getLeaveBalances({ year: new Date().getFullYear() }),
         ])
-            .then(([leave, employee]) => {
+            .then(([leave, employee, balance]) => {
                 setItems(leave.data.data ?? []);
+                setBalances(balance.data.data ?? []);
                 setEmployees(
                     (employee.data.data ?? []).map((e) => ({
                         id: e.id,
@@ -201,12 +207,98 @@ export default function LeaveRequestList() {
                     </table>
                 </div>
             </section>
+            <section className="mt-6 rounded-2xl border border-[#e9e2e9] bg-white p-5 sm:p-6">
+                <div className="mb-5 flex items-center justify-between gap-4">
+                    <div>
+                        <h2 className="text-base font-semibold text-[#352e39]">
+                            Leave balances
+                        </h2>
+                        <p className="mt-1 text-xs text-[#9a909c]">
+                            Current allocation and usage for{" "}
+                            {new Date().getFullYear()}.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setBalanceModal(true)}
+                        className="rounded-lg bg-[#5b3c78] px-3 py-2 text-xs font-semibold text-white"
+                    >
+                        Add balance
+                    </button>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full min-w-[650px] text-left text-xs text-[#625968]">
+                        <thead className="border-b border-[#eee9ee] text-[10px] font-semibold tracking-[0.13em] text-[#aaa0ad] uppercase">
+                            <tr>
+                                {[
+                                    "Employee",
+                                    "Leave type",
+                                    "Allocated",
+                                    "Used",
+                                    "Remaining",
+                                ].map((heading) => (
+                                    <th key={heading} className="pb-3">
+                                        {heading}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#f1edf1]">
+                            {!balances.length ? (
+                                <tr>
+                                    <td
+                                        colSpan="5"
+                                        className="py-6 text-center"
+                                    >
+                                        No leave balances configured.
+                                    </td>
+                                </tr>
+                            ) : (
+                                balances.map((balance) => (
+                                    <tr key={balance.id}>
+                                        <td className="py-4 font-semibold text-[#3c3440]">
+                                            {balance.employee?.name}
+                                            <span className="ml-2 font-normal text-[#9a909c]">
+                                                {
+                                                    balance.employee
+                                                        ?.employee_number
+                                                }
+                                            </span>
+                                        </td>
+                                        <td className="py-4">
+                                            {balance.leave_type}
+                                        </td>
+                                        <td className="py-4">
+                                            {balance.allocated_days} days
+                                        </td>
+                                        <td className="py-4">
+                                            {balance.used_days} days
+                                        </td>
+                                        <td className="py-4 font-semibold text-[#56806a]">
+                                            {balance.remaining_days} days
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
             {modal && (
                 <AddLeaveRequestModal
                     employees={employees}
                     onClose={() => setModal(false)}
                     onCreated={() => {
                         setModal(false);
+                        load();
+                    }}
+                />
+            )}
+            {balanceModal && (
+                <AddLeaveBalanceModal
+                    employees={employees}
+                    onClose={() => setBalanceModal(false)}
+                    onCreated={() => {
+                        setBalanceModal(false);
                         load();
                     }}
                 />
