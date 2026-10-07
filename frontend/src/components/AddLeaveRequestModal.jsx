@@ -10,6 +10,7 @@ export default function AddLeaveRequestModal({
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [errors, setErrors] = useState({});
+    const [position, setPosition] = useState("");
     useEffect(() => {
         dialogRef.current.showModal();
         return () => dialogRef.current?.close();
@@ -41,6 +42,16 @@ export default function AddLeaveRequestModal({
                 {[].concat(errors[name]).join(" ")}
             </p>
         );
+    const positions = [
+        ...new Map(
+            employees
+                .filter((employee) => employee.position_id && employee.position_name)
+                .map((employee) => [employee.position_id, { id: employee.position_id, name: employee.position_name }]),
+        ).values(),
+    ];
+    const availableEmployees = employees.filter(
+        (employee) => !position || String(employee.position_id) === position,
+    );
     return (
         <dialog
             ref={dialogRef}
@@ -64,11 +75,18 @@ export default function AddLeaveRequestModal({
                     disabled={saving}
                     className="grid gap-4 sm:grid-cols-2"
                 >
-                    <label className="sm:col-span-2 text-sm font-medium">
-                        Employee
+                    <label className="text-sm font-medium">
+                        Position <span className="text-red-700">*</span>
+                        <select required value={position} onChange={(event) => setPosition(event.target.value)} className={input}>
+                            <option value="">Select position</option>
+                            {positions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                        </select>
+                    </label>
+                    <label className="text-sm font-medium">
+                        Employee <span className="text-red-700">*</span>
                         <select name="employee_id" required className={input}>
-                            <option value="">Select employee</option>
-                            {employees.map((e) => (
+                            <option value="">{position ? "Select employee" : "Select a position first"}</option>
+                            {availableEmployees.map((e) => (
                                 <option key={e.id} value={e.id}>
                                     {e.name} ({e.employee_number})
                                 </option>
@@ -77,13 +95,13 @@ export default function AddLeaveRequestModal({
                         {fieldError("employee_id")}
                     </label>
                     <label className="text-sm font-medium">
-                        Leave type
-                        <input
-                            name="leave_type"
-                            required
-                            placeholder="Vacation leave"
-                            className={input}
-                        />
+                        Leave type <span className="text-red-700">*</span>
+                        <select name="leave_type" required defaultValue="" className={input}>
+                            <option value="" disabled>Select leave type</option>
+                            <option>Vacation leave</option><option>Sick leave</option><option>Emergency leave</option>
+                            <option>Bereavement leave</option><option>Maternity leave</option><option>Paternity leave</option>
+                            <option>Service incentive leave</option><option>Other leave</option>
+                        </select>
                         {fieldError("leave_type")}
                     </label>
                     <label className="text-sm font-medium">
@@ -92,7 +110,7 @@ export default function AddLeaveRequestModal({
                         {fieldError("reason")}
                     </label>
                     <label className="text-sm font-medium">
-                        Start date
+                        Start date <span className="text-red-700">*</span>
                         <input
                             name="start_date"
                             type="date"
@@ -102,7 +120,7 @@ export default function AddLeaveRequestModal({
                         {fieldError("start_date")}
                     </label>
                     <label className="text-sm font-medium">
-                        End date
+                        End date <span className="text-red-700">*</span>
                         <input
                             name="end_date"
                             type="date"

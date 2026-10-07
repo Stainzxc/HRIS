@@ -33,6 +33,8 @@ export default function LeaveRequestList() {
                         id: e.id,
                         name: [e.first_name, e.last_name].join(" "),
                         employee_number: e.employee_number,
+                        position_id: e.position?.id,
+                        position_name: e.position?.name,
                     })),
                 );
             })
