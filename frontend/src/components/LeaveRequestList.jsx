@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Search } from "lucide-react";
 import { getEmployees } from "../services/employeeService";
 import {
     getLeaveRequests,
@@ -22,6 +22,7 @@ export default function LeaveRequestList() {
         [loading, setLoading] = useState(true),
         [error, setError] = useState(""),
         [balances, setBalances] = useState([]),
+        [expandedEmployees, setExpandedEmployees] = useState({}),
         [modal, setModal] = useState(false);
     const [balanceModal, setBalanceModal] = useState(false);
     const load = () => {
@@ -56,6 +57,17 @@ export default function LeaveRequestList() {
             setError("Unable to update this request.");
         }
     }
+    const groupedBalances = Object.values(
+        balances.reduce((groups, balance) => {
+            const employeeId = balance.employee_id;
+            groups[employeeId] ??= { employee: balance.employee, balances: [] };
+            groups[employeeId].balances.push(balance);
+            return groups;
+        }, {}),
+    );
+    const toggleEmployee = (employeeId) =>
+        setExpandedEmployees((current) => ({ ...current, [employeeId]: !current[employeeId] }));
+
     const date = (value) =>
         value
             ? new Intl.DateTimeFormat("en-US", {
@@ -118,7 +130,7 @@ export default function LeaveRequestList() {
                             <tr>
                                 {[
                                     "Employee",
-                                    "Leave type",
+                                    "Leave types",
                                     "Dates",
                                     "Status",
                                     "Actions",
@@ -243,7 +255,7 @@ export default function LeaveRequestList() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#f1edf1]">
-                            {!balances.length ? (
+                            {!groupedBalances.length ? (
                                 <tr>
                                     <td
                                         colSpan="5"
@@ -253,31 +265,35 @@ export default function LeaveRequestList() {
                                     </td>
                                 </tr>
                             ) : (
-                                balances.map((balance) => (
-                                    <tr key={balance.id}>
+                                groupedBalances.map((group) => {
+                                    const employeeId = group.employee?.id ?? group.balances[0].employee_id;
+                                    const expanded = expandedEmployees[employeeId];
+                                    const totals = group.balances.reduce((sum, balance) => ({
+                                        allocated: sum.allocated + balance.allocated_days,
+                                        used: sum.used + balance.used_days,
+                                        remaining: sum.remaining + balance.remaining_days,
+                                    }), { allocated: 0, used: 0, remaining: 0 });
+                                    return <>
+                                    <tr key={employeeId} className="bg-[#fcfafc]">
                                         <td className="py-4 font-semibold text-[#3c3440]">
-                                            {balance.employee?.name}
+                                            <button type="button" onClick={() => toggleEmployee(employeeId)} className="mr-2 inline-flex align-middle text-[#79558a]" aria-label={`${expanded ? "Collapse" : "Expand"} balances for ${group.employee?.name}`}>
+                                                {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+                                            </button>
+                                            {group.employee?.name}
                                             <span className="ml-2 font-normal text-[#9a909c]">
-                                                {
-                                                    balance.employee
-                                                        ?.employee_number
-                                                }
+                                                {group.employee?.employee_number}
                                             </span>
                                         </td>
-                                        <td className="py-4">
-                                            {balance.leave_type}
-                                        </td>
-                                        <td className="py-4">
-                                            {balance.allocated_days} days
-                                        </td>
-                                        <td className="py-4">
-                                            {balance.used_days} days
-                                        </td>
+                                        <td className="py-4 text-[#837a85]">{group.balances.length} leave type{group.balances.length === 1 ? "" : "s"}</td>
+                                        <td className="py-4">{totals.allocated} days</td>
+                                        <td className="py-4">{totals.used} days</td>
                                         <td className="py-4 font-semibold text-[#56806a]">
-                                            {balance.remaining_days} days
+                                            {totals.remaining} days
                                         </td>
                                     </tr>
-                                ))
+                                    {expanded && group.balances.map((balance) => <tr key={balance.id}><td className="py-3 pl-10 text-[#837a85]">↳ {balance.leave_type}</td><td className="py-3">{balance.leave_type}</td><td className="py-3">{balance.allocated_days} days</td><td className="py-3">{balance.used_days} days</td><td className="py-3 font-semibold text-[#56806a]">{balance.remaining_days} days</td></tr>)}
+                                    </>;
+                                })
                             )}
                         </tbody>
                     </table>
